@@ -33,3 +33,13 @@ variable "clusters" {
   }
 }
 
+variable "s3_bucket_name_prefix" {
+  description = "Prefix for S3 bucket name"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region to deploy resources"
+  type        = string
+}
+

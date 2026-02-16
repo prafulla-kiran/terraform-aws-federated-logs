@@ -82,3 +82,8 @@ variable "non_default_tables" {
   }))
   default = {}
 }
+
+variable "aws_region" {
+  description = "AWS region to deploy resources"
+  type        = string
+}
