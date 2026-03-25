@@ -60,7 +60,6 @@ EOF
 "string"
 EOF
           }
-          }
           fields {
             id       = 5
             name     = "messageId"
