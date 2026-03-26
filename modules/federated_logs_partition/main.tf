@@ -56,6 +56,14 @@ EOF
 "string"
 EOF
           }
+          fields {
+            id       = 5
+            name     = "messageId"
+            required = true
+            type     = <<EOF
+"string"
+EOF
+          }
         }
 
         partition_spec {
