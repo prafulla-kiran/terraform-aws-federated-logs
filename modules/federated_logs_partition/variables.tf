@@ -35,14 +35,14 @@ variable "default_table_setting" {
       # on aws_glue_catalog_table_optimizer. Track: https://github.com/hashicorp/terraform-provider-aws/pull/44044
       compaction = optional(object({
         strategy              = optional(string, "binpack")
-        min_input_files       = optional(number)
-        delete_file_threshold = optional(number)
-      }), { strategy = "binpack" })
+        min_input_files       = optional(number, 100)
+        delete_file_threshold = optional(number, 1)
+      }), { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 })
 
       }), {
       orphan_file_deletion = { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 }
       snapshot_retention   = { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 }
-      compaction           = { strategy = "binpack" }
+      compaction           = { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 }
     })
   })
   default = {}
@@ -71,14 +71,14 @@ variable "partition_tables" {
       # on aws_glue_catalog_table_optimizer. Track: https://github.com/hashicorp/terraform-provider-aws/pull/44044
       compaction = optional(object({
         strategy              = optional(string, "binpack")
-        min_input_files       = optional(number)
-        delete_file_threshold = optional(number)
-      }), { strategy = "binpack" })
+        min_input_files       = optional(number, 100)
+        delete_file_threshold = optional(number, 1)
+      }), { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 })
 
       }), {
       orphan_file_deletion = { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 }
       snapshot_retention   = { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 }
-      compaction           = { strategy = "binpack" }
+      compaction           = { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 }
     })
   }))
   default = {}
