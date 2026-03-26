@@ -19,6 +19,7 @@ resource "aws_glue_catalog_table" "iceberg_table" {
         location = "s3://${var.s3_bucket_name}/${var.glue_catalog_db_name}/${each.key}/"
 
         properties = {
+          "format"                                     = "parquet"
           "write.target-file-size-bytes"               = each.value.table_parameters.write_target_file_size_bytes
           "write.metadata.delete-after-commit.enabled" = tostring(each.value.table_parameters.write_metadata_delete_after_commit_enabled)
           "write.metadata.previous-versions-max"       = each.value.table_parameters.write_metadata_previous_versions_max
