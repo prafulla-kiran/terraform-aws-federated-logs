@@ -39,7 +39,7 @@ terraform init -upgrade
 ```hcl
 module "federated_logs_setup_resource" {
   source     = "./modules/federated_logs_setup_resource"
-  setup_name = ""
+  setup_name = "logint-fed-logs-test-setup"
 }
 
 module "federated_logs_role" {
