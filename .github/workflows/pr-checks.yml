@@ -124,19 +124,19 @@ jobs:
   # ──────────────────────────────────────────────────────────────
   # Job 5 — Security Scan (single runner, entire repo)
   # ──────────────────────────────────────────────────────────────
-
   security-scan:
-  name: Security Scan (Checkov)
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Run Checkov
-      uses: bridgecrewio/checkov-action@v12
-      with:
-        directory: modules/
-        framework: terraform
-        soft_fail: false
+    name: Security Scan (Checkov)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: modules/
+          framework: terraform
+          soft_fail: false
 
   # ──────────────────────────────────────────────────────────────
   # Job 6 — Validate Commit Messages (conventional commits)
@@ -200,7 +200,6 @@ jobs:
               body: message
             });
             core.setFailed('Some commits do not follow conventional commit format');
-
 
   # ──────────────────────────────────────────────────────────────
   # Job 7 — Spell Check
