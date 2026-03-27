@@ -69,6 +69,11 @@ variable "partition_tables" {
   }
 }
 
+variable "federated_logs_setup_id" {
+  description = "ID of the New Relic federated logs setup"
+  type        = string
+}
+
 variable "setup_name" {
   description = "A name for this federated logs setup, also used in resource naming."
   type        = string
