@@ -1,7 +1,7 @@
 module "federated_logs" {
   source = "../../"
 
-  setup_name = "my-test-setuprohit"
+  setup_name = "my-app-logs"
 
   clusters = {
     "cluster-1" = {
