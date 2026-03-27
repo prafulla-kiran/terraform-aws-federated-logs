@@ -126,17 +126,18 @@ jobs:
   # ──────────────────────────────────────────────────────────────
 
   security-scan:
-  name: Security Scan (Checkov)
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Run Checkov
-      uses: bridgecrewio/checkov-action@v12
-      with:
-        directory: modules/
-        framework: terraform
-        soft_fail: false
+    name: Security Scan (Checkov)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: modules/
+          framework: terraform
+          soft_fail: false
 
   # ──────────────────────────────────────────────────────────────
   # Job 6 — Validate Commit Messages (conventional commits)
