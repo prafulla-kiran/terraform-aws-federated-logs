@@ -30,19 +30,16 @@ variable "default_table_setting" {
         run_rate_in_hours                 = optional(number, 24)
       }), { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 })
 
-      # Compaction configuration is managed via null_resource + AWS CLI because
-      # the Terraform AWS provider does not yet support compaction_configuration
-      # on aws_glue_catalog_table_optimizer. Track: https://github.com/hashicorp/terraform-provider-aws/pull/44044
       compaction = optional(object({
         strategy              = optional(string, "binpack")
-        min_input_files       = optional(number, 100)
+        min_input_files       = optional(number, 5)
         delete_file_threshold = optional(number, 1)
-      }), { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 })
+      }), { strategy = "binpack", min_input_files = 5, delete_file_threshold = 1 })
 
       }), {
       orphan_file_deletion = { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 }
       snapshot_retention   = { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 }
-      compaction           = { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 }
+      compaction           = { strategy = "binpack", min_input_files = 5, delete_file_threshold = 1 }
     })
   })
   default = {}
@@ -65,20 +62,16 @@ variable "partition_tables" {
         clean_expired_files               = optional(bool, false)
         run_rate_in_hours                 = optional(number, 24)
       }), { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 })
-
-      # Compaction configuration is managed via null_resource + AWS CLI because
-      # the Terraform AWS provider does not yet support compaction_configuration
-      # on aws_glue_catalog_table_optimizer. Track: https://github.com/hashicorp/terraform-provider-aws/pull/44044
       compaction = optional(object({
         strategy              = optional(string, "binpack")
-        min_input_files       = optional(number, 100)
+        min_input_files       = optional(number, 5)
         delete_file_threshold = optional(number, 1)
-      }), { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 })
+      }), { strategy = "binpack", min_input_files = 5, delete_file_threshold = 1 })
 
       }), {
       orphan_file_deletion = { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 }
       snapshot_retention   = { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 }
-      compaction           = { strategy = "binpack", min_input_files = 100, delete_file_threshold = 1 }
+      compaction           = { strategy = "binpack", min_input_files = 5, delete_file_threshold = 1 }
     })
   }))
   default = {}
