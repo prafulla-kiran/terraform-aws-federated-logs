@@ -1,4 +1,5 @@
 data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
 
 resource "aws_glue_catalog_table_optimizer" "compaction" {
   for_each      = local.all_tables
@@ -92,12 +93,12 @@ resource "null_resource" "compaction_configuration" {
       set -e
       echo "Configuring compaction for table ${each.key} (strategy: ${each.value.optimizer_configuration.compaction.strategy})..."
       aws glue update-table-optimizer \
-        --catalog-id ${var.aws_account_id} \
+        --catalog-id ${data.aws_caller_identity.current.account_id} \
         --database-name ${var.glue_catalog_db_name} \
         --table-name ${each.key} \
         --table-optimizer-configuration "$CONFIG" \
         --type compaction \
-        --region ${var.aws_region}
+        --region ${data.aws_region.current.name}
       echo "Compaction configured for ${each.key}."
     EOT
   }
