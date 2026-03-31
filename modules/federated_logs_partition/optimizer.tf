@@ -81,11 +81,7 @@ resource "null_resource" "compaction_configuration" {
         roleArn = var.glue_service_role_arn
         enabled = true
         compactionConfiguration = {
-          icebergConfiguration = merge(
-            { strategy = each.value.optimizer_configuration.compaction.strategy },
-            each.value.optimizer_configuration.compaction.min_input_files != null ? { minInputFiles = each.value.optimizer_configuration.compaction.min_input_files } : {},
-            each.value.optimizer_configuration.compaction.delete_file_threshold != null ? { deleteFileThreshold = each.value.optimizer_configuration.compaction.delete_file_threshold } : {}
-          )
+          icebergConfiguration = local.compaction_configs[each.key]
         }
       })
     }
