@@ -11,6 +11,21 @@ resource "aws_glue_catalog_table" "iceberg_table" {
   database_name = var.glue_catalog_db_name
 
   lifecycle {
+    precondition {
+      condition     = !local.has_duplicates
+      error_message = <<-EOT
+        Duplicate partition names detected after sanitization!
+        The following sanitized table names appear multiple times: ${join(", ", distinct(local.duplicate_names))}
+
+        This happens when different partition_tables keys result in the same final name after:
+        - Adding prefix: newrelic_fed_logs_${var.setup_name}_
+        - Lowercasing and replacing special characters with underscores
+        - Truncating to 255 characters
+
+        Please use more distinct partition names in your partition_tables variable.
+      EOT
+    }
+
     ignore_changes = [
       # Prevent TF from fighting with Athena/Iceberg over these dynamic keys
       parameters["previous_metadata_location"],

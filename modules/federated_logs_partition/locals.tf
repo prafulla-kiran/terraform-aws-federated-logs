@@ -16,6 +16,22 @@ locals {
     substr(replace(lower("${local.setup_naming_prefix}_${raw_key}"), "/[^a-z0-9_]/", "_"), 0, local.max_table_name_length) => config
   }
 
+  # Validate no duplicates after sanitization (including setup_name prefix)
+  # This catches cases where truncation or character replacement causes collisions
+  sanitized_keys = [
+    for raw_key in keys(var.partition_tables) :
+    substr(replace(lower("${local.setup_naming_prefix}_${raw_key}"), "/[^a-z0-9_]/", "_"), 0, local.max_table_name_length)
+  ]
+
+  # Detect duplicates by comparing list length vs distinct set length
+  has_duplicates = length(local.sanitized_keys) != length(distinct(local.sanitized_keys))
+
+  # Create error message showing which names collide
+  duplicate_names = local.has_duplicates ? [
+    for idx, name in local.sanitized_keys :
+    name if length([for i, n in local.sanitized_keys : n if n == name]) > 1
+  ] : []
+
   all_tables = merge(
     { substr(replace(lower("${local.setup_naming_prefix}_${local.default_partition_name}"), "/[^a-z0-9_]/", "_"), 0, local.max_table_name_length) = var.default_table_setting },
     local.sanitized_partition_tables

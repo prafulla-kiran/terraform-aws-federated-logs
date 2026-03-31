@@ -67,6 +67,22 @@ variable "partition_tables" {
     condition     = !contains([for k in keys(var.partition_tables) : lower(k)], "log_federated")
     error_message = "The table name 'Log_Federated' (case-insensitive) is reserved for the default table. Use default_table_setting to configure it."
   }
+
+  validation {
+    # Simulate the sanitization logic from locals.tf to detect duplicates before they're created
+    condition = length(keys(var.partition_tables)) == length(distinct([
+      for raw_key in keys(var.partition_tables) :
+      # Apply the same transformation as in locals.tf (without setup_name prefix for now)
+      substr(replace(lower(raw_key), "/[^a-z0-9_]/", "_"), 0, 255)
+    ]))
+    error_message = <<-EOT
+      Duplicate partition names detected after sanitization (lowercase + special chars → underscores).
+      Each partition name must result in a unique sanitized name. Check for names that differ only in:
+      - Case (e.g., "MyTable" vs "mytable")
+      - Special characters (e.g., "app-logs" vs "app_logs")
+      - Length (if names are very long and get truncated to the same value)
+    EOT
+  }
 }
 
 variable "setup_name" {
