@@ -13,6 +13,18 @@ variable "glue_service_role_arn" {
   type        = string
 }
 
+#──────────────────────────────────────────────────────────────
+# Optimizer configuration defaults (for both variables below):
+#   orphan_file_deletion:
+#     orphan_file_retention_period_in_days = 3
+#     run_rate_in_hours                    = 24
+#   snapshot_retention:
+#     snapshot_retention_period_in_days    = 5
+#     number_of_snapshots_to_retain        = 2
+#     clean_expired_files                  = false
+#     run_rate_in_hours                    = 24
+#──────────────────────────────────────────────────────────────
+
 variable "default_table_setting" {
   description = "Settings for the primary 'Log' table"
   type = object({
@@ -21,45 +33,34 @@ variable "default_table_setting" {
       orphan_file_deletion = optional(object({
         orphan_file_retention_period_in_days = optional(number, 3)
         run_rate_in_hours                    = optional(number, 24)
-      }), { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 })
-
+      }), {})
       snapshot_retention = optional(object({
         snapshot_retention_period_in_days = optional(number, 5)
-        number_of_snapshots_to_retain     = optional(number, 2)
-        clean_expired_files               = optional(bool, false)
-        run_rate_in_hours                 = optional(number, 24)
-      }), { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 })
-
-      }), {
-      orphan_file_deletion = { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 }
-      snapshot_retention   = { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 }
-    })
+        number_of_snapshots_to_retain    = optional(number, 2)
+        clean_expired_files              = optional(bool, false)
+        run_rate_in_hours                = optional(number, 24)
+      }), {})
+    }), {})
   })
   default = {}
 }
 
 variable "partition_tables" {
   description = "Map of extra tables using the exact same structure as the default"
-  # We wrap the same object structure in a map()
   type = map(object({
     table_parameters = optional(map(string), {})
     optimizer_configuration = optional(object({
       orphan_file_deletion = optional(object({
         orphan_file_retention_period_in_days = optional(number, 3)
         run_rate_in_hours                    = optional(number, 24)
-      }), { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 })
-
+      }), {})
       snapshot_retention = optional(object({
         snapshot_retention_period_in_days = optional(number, 5)
-        number_of_snapshots_to_retain     = optional(number, 2)
-        clean_expired_files               = optional(bool, false)
-        run_rate_in_hours                 = optional(number, 24)
-      }), { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 })
-
-      }), {
-      orphan_file_deletion = { orphan_file_retention_period_in_days = 3, run_rate_in_hours = 24 }
-      snapshot_retention   = { snapshot_retention_period_in_days = 5, number_of_snapshots_to_retain = 2, clean_expired_files = false, run_rate_in_hours = 24 }
-    })
+        number_of_snapshots_to_retain    = optional(number, 2)
+        clean_expired_files              = optional(bool, false)
+        run_rate_in_hours                = optional(number, 24)
+      }), {})
+    }), {})
   }))
   default = {}
 
