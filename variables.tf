@@ -7,13 +7,25 @@ variable "setup_name" {
   }
 }
 
-variable "clusters" {
-  description = "Map of cluster configurations for PCG writer role authentication"
-  type = map(object({
-    k8s_namespace            = string
-    k8s_service_account_name = string
-    oidc_provider_arn        = string
-  }))
+variable "data_processing_entity_id" {
+  description = "NGEP data processing entity ID (GUID) from the data_processing module. Used to look up the base role ARN via NerdGraph."
+  type        = string
+}
+
+variable "newrelic_user_api_key" {
+  description = "New Relic User API key for NerdGraph API calls."
+  type        = string
+  sensitive   = true
+}
+
+variable "newrelic_region" {
+  description = "New Relic region: US or EU."
+  type        = string
+  default     = "US"
+  validation {
+    condition     = contains(["US", "EU"], var.newrelic_region)
+    error_message = "newrelic_region must be US or EU."
+  }
 }
 
 variable "default_table_setting" {

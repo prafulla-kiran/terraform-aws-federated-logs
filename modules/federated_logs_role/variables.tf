@@ -8,19 +8,14 @@ variable "glue_catalog_db_name" {
   type        = string
 }
 
-variable "clusters" {
-  description = "A map of cluster configurations for federated logging"
-  type = map(object({
-    k8s_namespace            = string
-    k8s_service_account_name = string
-    oidc_provider_arn        = string
-  }))
+variable "base_role_arn" {
+  description = "ARN of the base IAM role from the data_processing module. The pcg-writer-role trusts this role."
+  type        = string
+}
 
-  # Validation: Ensure names aren't empty
-  validation {
-    condition     = alltrue([for c in var.clusters : length(c.k8s_namespace) > 0 && length(c.k8s_service_account_name) > 0 && length(c.oidc_provider_arn) > 0])
-    error_message = "All fields (k8s_namespace, k8s_service_account_name, oidc_provider_arn) must be non-empty for each cluster."
-  }
+variable "base_role_name" {
+  description = "Name of the base IAM role from the data_processing module. Used to attach an inline assume-role policy."
+  type        = string
 }
 
 variable "setup_name" {

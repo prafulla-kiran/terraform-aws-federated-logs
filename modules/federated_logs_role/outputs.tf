@@ -4,7 +4,7 @@ output "glue_service_role_arn" {
 }
 
 output "pcg_writer_role_arn" {
-  description = "ARN of the IAM role for PCG to write federated logs"
+  description = "ARN of the target setup role for PCG to write federated logs (scoped to this setup's bucket/DB)"
   value       = aws_iam_role.pcg-writer-role.arn
 }
 
