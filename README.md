@@ -48,6 +48,11 @@ module "federated_logs" {
           clean_expired_files               = false
           run_rate_in_hours                 = 24
         }
+        compaction = {
+          strategy              = "binpack"
+          min_input_files       = 10
+          delete_file_threshold = 2
+        }
       }
     },
     "network_log" = {
