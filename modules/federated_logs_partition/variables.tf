@@ -76,7 +76,7 @@ variable "partition_tables" {
         min_input_files       = optional(number, 5)
         delete_file_threshold = optional(number, 1)
       }), {})
-    }), {})
+      }), {})
   }))
   default = {}
 

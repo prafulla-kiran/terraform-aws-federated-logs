@@ -59,9 +59,6 @@ resource "aws_glue_catalog_table_optimizer" "orphan_deletion" {
 # null_resource is used here because aws_glue_catalog_table_optimizer does not yet support
 # compaction_configuration in the Terraform AWS provider. This calls update-table-optimizer
 # via the AWS CLI to set strategy/min_input_files/delete_file_threshold.
-# Once https://github.com/hashicorp/terraform-provider-aws/pull/44044 is merged,
-# this null_resource should be removed and compaction_configuration added to the
-# aws_glue_catalog_table_optimizer.compaction resource above.
 resource "null_resource" "compaction_configuration" {
   for_each = local.all_tables
 
