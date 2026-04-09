@@ -6,3 +6,9 @@ variable "setup_name" {
     error_message = "The setup_name must be all lowercase and alphanumeric, can contain hyphens but not as the first or last character, and must be between 3 and 26 characters long."
   }
 }
+
+variable "region" {
+  description = "AWS region where resources will be created. If not set, uses the provider's configured region."
+  type        = string
+  default     = null
+}

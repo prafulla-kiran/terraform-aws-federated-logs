@@ -8,6 +8,12 @@ variable "glue_catalog_db_name" {
   type        = string
 }
 
+variable "region" {
+  description = "AWS region where resources will be created. If not set, uses the provider's configured region."
+  type        = string
+  default     = null
+}
+
 variable "glue_service_role_arn" {
   description = "ARN of the Glue service role for table maintenance"
   type        = string

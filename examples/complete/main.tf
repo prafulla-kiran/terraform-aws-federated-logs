@@ -3,6 +3,9 @@ module "federated_logs" {
 
   setup_name = "my-app-logs"
 
+  # AWS region where resources will be created. If not set, uses the provider's configured region.
+  #region = "us-east-2"
+
   clusters = {
     "cluster-1" = {
       k8s_namespace            = "federated-logs"

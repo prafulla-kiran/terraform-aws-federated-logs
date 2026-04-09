@@ -8,6 +8,12 @@ variable "glue_catalog_db_name" {
   type        = string
 }
 
+variable "region" {
+  description = "AWS region where resources will be created. If not set, uses the provider's configured region."
+  type        = string
+  default     = null
+}
+
 variable "clusters" {
   description = "A map of cluster configurations for federated logging"
   type = map(object({

@@ -1,7 +1,9 @@
 # Get aws account id from caller
 
 data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
+data "aws_region" "current" {
+  region = var.region
+}
 
 resource "random_uuid" "external_id" {
   keepers = {
