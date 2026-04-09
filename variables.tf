@@ -1,3 +1,9 @@
+variable "region" {
+  description = "AWS region where resources will be created. If not set, uses the provider's configured region."
+  type        = string
+  default     = null
+}
+
 variable "setup_name" {
   description = "A name for this federated logs setup, also used in resource naming."
   type        = string

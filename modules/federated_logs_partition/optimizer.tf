@@ -1,5 +1,4 @@
 data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
 
 resource "aws_glue_catalog_table_optimizer" "compaction" {
   for_each      = local.all_tables
@@ -7,6 +6,7 @@ resource "aws_glue_catalog_table_optimizer" "compaction" {
   database_name = var.glue_catalog_db_name
   table_name    = aws_glue_catalog_table.iceberg_table[each.key].name
   type          = "compaction"
+  region        = data.aws_region.current.id
 
   configuration {
     role_arn = var.glue_service_role_arn
@@ -20,6 +20,7 @@ resource "aws_glue_catalog_table_optimizer" "retention" {
   database_name = var.glue_catalog_db_name
   table_name    = aws_glue_catalog_table.iceberg_table[each.key].name
   type          = "retention"
+  region        = data.aws_region.current.id
 
   configuration {
     role_arn = var.glue_service_role_arn
@@ -42,6 +43,7 @@ resource "aws_glue_catalog_table_optimizer" "orphan_deletion" {
   database_name = var.glue_catalog_db_name
   table_name    = aws_glue_catalog_table.iceberg_table[each.key].name
   type          = "orphan_file_deletion"
+  region        = data.aws_region.current.id
 
   configuration {
     role_arn = var.glue_service_role_arn
@@ -100,14 +102,17 @@ resource "null_resource" "compaction_configuration" {
 resource "aws_cloudwatch_log_group" "iceberg_compaction_logs" {
   name              = "/aws-glue/iceberg-compaction/logs"
   retention_in_days = 7
+  region            = data.aws_region.current.id
 }
 
 resource "aws_cloudwatch_log_group" "iceberg_retention_logs" {
   name              = "/aws-glue/iceberg-retention/logs"
   retention_in_days = 7
+  region            = data.aws_region.current.id
 }
 
 resource "aws_cloudwatch_log_group" "iceberg_orphan_file_deletion_logs" {
   name              = "/aws-glue/iceberg-orphan-file-deletion/logs"
   retention_in_days = 7
+  region            = data.aws_region.current.id
 }
