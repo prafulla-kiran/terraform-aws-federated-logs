@@ -5,14 +5,13 @@ Terraform module to provision AWS resources for New Relic Federated Logs. Create
 ## Usage
 
 ```hcl
-provider "aws" {
-  region = "us-east-1"
-}
-
 module "federated_logs" {
   source = "git::https://github.com/newrelic/terraform-aws-federated-logs.git?ref=v1.0.0"
 
   setup_name = "my-app-logs"
+
+  # AWS region where resources will be created. If not set, uses the provider's configured region.
+  #region = "us-east-2"
 
   clusters = {
     "prod-cluster" = {
@@ -96,15 +95,3 @@ module "federated_logs" {
 ## Examples
 
 - [Complete](./examples/complete) — Full deployment with custom table settings and multiple partition tables
-
-## Provider Configuration
-
-This module does **not** include a `provider` block. You must configure the AWS provider in your root module:
-
-```hcl
-provider "aws" {
-  region = "us-east-1"
-}
-```
-
-All resources will be created in the region configured in your provider.
