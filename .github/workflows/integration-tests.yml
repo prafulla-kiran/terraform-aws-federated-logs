@@ -32,6 +32,9 @@ jobs:
           role-to-assume: ${{ secrets.AWS_TEST_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Terraform Init
+        run: terraform init
+
       - name: Run Setup Resource Tests
         run: terraform test -filter=tests/setup_resource.tftest.hcl
         continue-on-error: false
