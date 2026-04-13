@@ -7,11 +7,6 @@
 #   2. Shared setup (one S3 bucket, Glue DB, IAM roles)
 #   3. Sequential functional tests (build on each other)
 #
-# This approach:
-#   - Eliminates "resource not found" warnings
-#   - Faster execution (shared infrastructure)
-#   - Lower AWS costs (fewer resources created)
-#
 # =============================================================================
 
 # Shared test variables
