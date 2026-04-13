@@ -14,22 +14,12 @@ variable "region" {
   default     = null
 }
 
-variable "region" {
-  description = "AWS region where resources will be created. If not set, uses the provider's configured region."
-  type        = string
-  default     = null
-}
-
 variable "clusters" {
-  description = "A map of cluster configurations for federated logging. Set auth_mode to 'irsa' (default) or 'pod_identity'. NOTE: 'pod_identity' requires the 'eks-pod-identity-agent' addon to be installed on each cluster — manage that in your EKS cluster module."
   description = "A map of cluster configurations for federated logging. Set auth_mode to 'irsa' (default) or 'pod_identity'. NOTE: 'pod_identity' requires the 'eks-pod-identity-agent' addon to be installed on each cluster — manage that in your EKS cluster module."
   type = map(object({
     auth_mode                = optional(string, "irsa") # "irsa" or "pod_identity"
-    auth_mode                = optional(string, "irsa") # "irsa" or "pod_identity"
     k8s_namespace            = string
     k8s_service_account_name = string
-    oidc_provider_arn        = optional(string) # Required when auth_mode = "irsa"
-    cluster_name             = optional(string) # Required when auth_mode = "pod_identity"
     oidc_provider_arn        = optional(string) # Required when auth_mode = "irsa"
     cluster_name             = optional(string) # Required when auth_mode = "pod_identity"
   }))
