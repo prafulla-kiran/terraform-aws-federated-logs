@@ -33,14 +33,42 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Verify Artifactory URL accessibility
+        run: |
+          REGISTRY_URL="https://artifacts.datanerd.us/artifactory/api/npm/newrelic-js-local/"
+          echo "Checking URL from GitHub runner: $REGISTRY_URL"
+          set +e
+          HTTP_CODE=$(curl -sS -L \
+            -o /tmp/artifactory_response_body.txt \
+            -D /tmp/artifactory_response_headers.txt \
+            -w "%{http_code}" \
+            "$REGISTRY_URL")
+          CURL_EXIT=$?
+          set -e
+
+          echo "Artifactory registry HTTP status: $HTTP_CODE"
+          echo "curl exit code: $CURL_EXIT"
+          echo "Response headers:"
+          cat /tmp/artifactory_response_headers.txt || true
+
+          if [[ "$HTTP_CODE" == "000" || "$HTTP_CODE" -ge 500 || "$CURL_EXIT" -ne 0 ]]; then
+            echo "::warning::Artifactory URL may not be reachable from this runner (continuing for diagnostics)."
+          fi
+
       - name: Configure Artifactory authentication
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
         run: |
-          curl -sSf -u "$ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD" \
-            https://artifacts.datanerd.us/api/npm/newrelic-js-local/auth/datanerd > .npmrc
+          if [[ -z "$ARTIFACTORY_USERNAME" || -z "$ARTIFACTORY_PASSWORD" ]]; then
+            echo "ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD secrets are required"
+            exit 1
+          fi
+
+          export ARTIFACTORY_AUTH=$(printf '%s' "$ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD" | base64)
           npm config set @shared-package:registry "https://artifacts.datanerd.us/artifactory/api/npm/newrelic-js-local/"
+          npm config set "//artifacts.datanerd.us/artifactory/api/npm/newrelic-js-local/:_auth" "${ARTIFACTORY_AUTH}"
+          npm config set "//artifacts.datanerd.us/artifactory/api/npm/newrelic-js-local/:always-auth" true
 
       - name: Generate template from main.tf
         run: npm run generate
