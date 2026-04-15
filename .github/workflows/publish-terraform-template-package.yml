@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - publish-terraform-as-shared-package  # TEMPORARY: Remove before merging
     paths:
       - 'main.tf'
       - 'npm/federated-logs-terraform-template/**'
