@@ -5,9 +5,10 @@ on:
     branches:
       - master
       - publish-terraform-as-shared-package  # TEMPORARY: Remove before merging
-    paths:
-      - 'main.tf'
-      - 'npm/federated-logs-terraform-template/**'
+    # TEMPORARY: Paths filter commented for testing - uncomment before merging
+    # paths:
+    #   - 'main.tf'
+    #   - 'npm/federated-logs-terraform-template/**'
 
   # Manual trigger - allows running workflow on any branch
   workflow_dispatch:
