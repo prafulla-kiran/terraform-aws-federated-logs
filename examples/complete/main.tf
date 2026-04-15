@@ -1,7 +1,7 @@
 module "federated_logs" {
   source = "../../"
 
-  setup_name = "my-app-logs-jtatewar"
+  setup_name = "my-app-logs"
 
   # AWS region where resources will be created. If not set, uses the provider's configured region.
   #region = "us-east-2"
