@@ -25,14 +25,7 @@ resource "aws_iam_role" "glue_service_role" {
         Principal = {
           Service = "glue.amazonaws.com"
         }
-      },
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "events.amazonaws.com"
-        }
-      },
+      }
     ]
   })
 }

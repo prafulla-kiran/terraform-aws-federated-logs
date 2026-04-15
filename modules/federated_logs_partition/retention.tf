@@ -126,28 +126,21 @@ resource "aws_glue_job" "retention" {
     "--DATABASE_NAME"                    = var.glue_catalog_db_name
     "--TABLE_NAMES"                      = join(",", keys(local.all_tables))
     "--RETENTION_PERIOD"                 = var.retention_period
-    "--SECRET_ARN"                       = aws_secretsmanager_secret.newrelic_api_key.arn
   }
 }
 
-# EventBridge rule to trigger retention job on schedule
+# Glue Trigger to schedule retention job
 # Runs daily at midnight UTC (00:00) to delete old data based on table retention_period settings
-resource "aws_cloudwatch_event_rule" "retention_schedule" {
+resource "aws_glue_trigger" "retention_schedule" {
   count = local.has_retention_enabled ? 1 : 0
 
-  name                = "${local.setup_naming_prefix}-retention-schedule"
-  description         = "Trigger retention cleanup job for ${var.setup_name}"
-  schedule_expression = "cron(0 0 * * ? *)"
-}
+  name     = "${local.setup_naming_prefix}-retention-schedule"
+  type     = "SCHEDULED"
+  schedule = "cron(0 0 * * ? *)"
 
-# EventBridge target to invoke Glue job
-resource "aws_cloudwatch_event_target" "retention_job" {
-  count = local.has_retention_enabled ? 1 : 0
-
-  rule      = aws_cloudwatch_event_rule.retention_schedule[0].name
-  target_id = "GlueRetentionJob"
-  arn       = aws_glue_job.retention[0].arn
-  role_arn  = var.glue_service_role_arn
+  actions {
+    job_name = aws_glue_job.retention[0].name
+  }
 }
 
 # CloudWatch Log Group for retention job logs

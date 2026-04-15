@@ -17,6 +17,7 @@ variable "clusters" {
   description = "Map of cluster configurations for PCG writer role authentication"
   type = map(object({
     k8s_namespace            = string
+    auth_mode                = string
     k8s_service_account_name = string
     oidc_provider_arn        = string
   }))
