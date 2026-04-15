@@ -1,6 +1,6 @@
 {
   "name": "@shared-package/federated-logs-terraform-template",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Terraform template for Federated Logs UI",
   "main": "index.js",
   "scripts": {
