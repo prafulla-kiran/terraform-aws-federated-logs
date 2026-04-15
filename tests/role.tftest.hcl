@@ -5,7 +5,9 @@
 # What we test here:
 #   1. Input validation (clusters must have non-empty fields)
 #   2. Role naming conventions
-#   3. Module dependency wiring (uses setup_resource outputs correctly)
+#   3. IAM policy permissions (correct actions attached to each role)
+#   4. Trust policy structure (OIDC federation, ExternalId, etc.)
+#   5. Module dependency wiring (uses setup_resource outputs correctly)
 #
 # =============================================================================
 
@@ -80,6 +82,104 @@ run "test_role_naming_conventions" {
   assert {
     condition     = can(regex("newrelic-fed-logs-inttest-role-name-nr-query", output.nr_reader_role_arn))
     error_message = "NR reader role ARN should contain 'newrelic-fed-logs-{setup_name}-nr-query'"
+  }
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # IAM POLICY PERMISSION ASSERTIONS
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Verify that each role's policy contains the required actions.
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # --- Glue Service Role Permissions ---
+  assert {
+    condition     = can(regex("s3:GetObject", output.glue_service_policy_json))
+    error_message = "Glue service policy missing s3:GetObject - required for reading Iceberg data files"
+  }
+
+  assert {
+    condition     = can(regex("s3:PutObject", output.glue_service_policy_json))
+    error_message = "Glue service policy missing s3:PutObject - required for compaction"
+  }
+
+  assert {
+    condition     = can(regex("s3:DeleteObject", output.glue_service_policy_json))
+    error_message = "Glue service policy missing s3:DeleteObject - required for orphan file deletion"
+  }
+
+  assert {
+    condition     = can(regex("glue:UpdateTable", output.glue_service_policy_json))
+    error_message = "Glue service policy missing glue:UpdateTable - required for Iceberg metadata updates"
+  }
+
+  assert {
+    condition     = can(regex("logs:PutLogEvents", output.glue_service_policy_json))
+    error_message = "Glue service policy missing logs:PutLogEvents - required for optimizer logging"
+  }
+
+  # --- PCG Writer Role Permissions ---
+  assert {
+    condition     = can(regex("s3:GetObject", output.pcg_writer_policy_json))
+    error_message = "PCG writer policy missing s3:GetObject - required for reading Iceberg metadata"
+  }
+
+  assert {
+    condition     = can(regex("s3:PutObject", output.pcg_writer_policy_json))
+    error_message = "PCG writer policy missing s3:PutObject - required for writing log data"
+  }
+
+  assert {
+    condition     = can(regex("glue:UpdateTable", output.pcg_writer_policy_json))
+    error_message = "PCG writer policy missing glue:UpdateTable - required for Iceberg commits"
+  }
+
+  assert {
+    condition     = can(regex("glue:GetTable", output.pcg_writer_policy_json))
+    error_message = "PCG writer policy missing glue:GetTable - required for reading table metadata"
+  }
+
+  # --- NR Reader Role Permissions ---
+  assert {
+    condition     = can(regex("s3:GetObject", output.nr_reader_policy_json))
+    error_message = "NR reader policy missing s3:GetObject - required for reading log data"
+  }
+
+  assert {
+    condition     = can(regex("s3:ListBucket", output.nr_reader_policy_json))
+    error_message = "NR reader policy missing s3:ListBucket - required for listing Iceberg files"
+  }
+
+  assert {
+    condition     = can(regex("glue:GetTable", output.nr_reader_policy_json))
+    error_message = "NR reader policy missing glue:GetTable - required for reading table schema"
+  }
+
+  assert {
+    condition     = can(regex("glue:GetPartitions", output.nr_reader_policy_json))
+    error_message = "NR reader policy missing glue:GetPartitions - required for partition pruning"
+  }
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # TRUST POLICY ASSERTIONS
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Verify trust policies have correct principals and conditions
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # Glue service role should trust glue.amazonaws.com
+  assert {
+    condition     = can(regex("glue.amazonaws.com", output.glue_service_trust_policy_json))
+    error_message = "Glue service role trust policy must allow glue.amazonaws.com - table optimizers won't work"
+  }
+
+  # PCG writer role should have OIDC federation (for IRSA)
+  assert {
+    condition     = can(regex("AssumeRoleWithWebIdentity", output.pcg_writer_trust_policy_json))
+    error_message = "PCG writer role trust policy missing sts:AssumeRoleWithWebIdentity - EKS pods can't assume this role"
+  }
+
+  # NR reader role should have ExternalId condition
+  assert {
+    condition     = can(regex("ExternalId", output.nr_reader_trust_policy_json))
+    error_message = "NR reader role trust policy missing ExternalId condition - security risk for cross-account access"
   }
 }
 
