@@ -14,3 +14,41 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+## Post-Deploy Validation
+
+Enable validation by adding `validation_config` to the module:
+
+```hcl
+module "federated_logs" {
+  # ...
+
+  validation_config = {
+    enabled = true
+  }
+}
+```
+
+This runs 19 check blocks on every `terraform plan`, surfacing misconfigurations as warnings:
+
+- **Resource existence**: S3 bucket, IAM roles, CloudWatch log groups
+- **Trust policy structure**: Glue service trust, OIDC federation on PCG writer, ExternalId on NR reader
+- **Permission simulation**: Positive and negative IAM permission checks for all three roles
+- **OIDC provider existence**: Verifies each cluster's OIDC provider ARN exists (opt-in)
+
+No resources are created. Disable at any time by setting `enabled = false` or removing the block.
+
+### Prerequisites
+
+| Feature | Permission required |
+|---------|-------------------|
+| Permission checks (default on) | `iam:SimulatePrincipalPolicy` |
+| OIDC validation (default off) | `iam:GetOpenIDConnectProvider` |
+
+```hcl
+validation_config = {
+  enabled                  = true
+  enable_permission_checks = false  # Skip if lacking iam:SimulatePrincipalPolicy
+  enable_oidc_validation   = true   # Opt in if you have iam:GetOpenIDConnectProvider
+}
+```

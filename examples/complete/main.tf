@@ -76,4 +76,14 @@ module "federated_logs" {
       }
     }
   }
+
+  # Post-deploy validation (optional)
+  # Validates resource existence, IAM trust policies, and permission boundaries.
+  # Runs automatically on terraform plan. Creates no resources — only check blocks.
+  #
+  # validation_config = {
+  #   enabled                  = true
+  #   enable_permission_checks = true   # Requires iam:SimulatePrincipalPolicy
+  #   enable_oidc_validation   = false  # Requires iam:GetOpenIDConnectProvider
+  # }
 }
