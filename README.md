@@ -13,7 +13,7 @@ module "federated_logs" {
   newrelic_api_key = "NRAK-123456ABCDEF"
 
   # Optional: set to enable retention 
-  retention_period = "7 DAYS"  
+  retention_enabled = true  
 
   # AWS region where resources will be created. If not set, uses the provider's configured region.
   #region = "us-east-2"
