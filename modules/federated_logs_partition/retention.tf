@@ -45,7 +45,7 @@ def main():
     for table_name in table_names:
 
         try:
-            # Execute DELETE using Spark SQL
+            # Execute DELETE using Spark SQL with Iceberg catalog
             delete_query = f"DELETE FROM glue_catalog.{database}.{table_name} WHERE timestamp < TIMESTAMP '{cutoff_str}'"
             print(f"[{table_name}] Executing: {delete_query}")
             spark.sql(delete_query)
@@ -107,6 +107,8 @@ resource "aws_glue_job" "retention" {
     "--enable-glue-datacatalog"          = "true"
     "--enable-metrics"                   = "true"
     "--enable-spark-ui"                  = "true"
+    "--datalake-formats"                 = "iceberg"
+    "--conf"                             = "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions --conf spark.sql.catalog.glue_catalog=org.apache.iceberg.spark.SparkCatalog --conf spark.sql.catalog.glue_catalog.warehouse=s3://${var.s3_bucket_name}/warehouse/ --conf spark.sql.catalog.glue_catalog.catalog-impl=org.apache.iceberg.aws.glue.GlueCatalog --conf spark.sql.catalog.glue_catalog.io-impl=org.apache.iceberg.aws.s3.S3FileIO --conf spark.sql.iceberg.handle-timestamp-without-timezone=true"
     "--DATABASE_NAME"                    = var.glue_catalog_db_name
     "--TABLE_NAMES"                      = join(",", keys(local.all_tables))
   }
