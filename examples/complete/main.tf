@@ -83,7 +83,7 @@ module "federated_logs" {
   # Enable on demand:  terraform plan -var="enable_validation=true"
   validation_config = {
     enabled                  = var.enable_validation
-    enable_permission_checks = true   # Requires iam:SimulatePrincipalPolicy
-    enable_oidc_validation   = false  # Requires iam:GetOpenIDConnectProvider
+    enable_permission_checks = true  # Requires iam:SimulatePrincipalPolicy
+    enable_oidc_validation   = false # Requires iam:GetOpenIDConnectProvider
   }
 }
