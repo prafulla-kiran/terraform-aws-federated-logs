@@ -20,12 +20,15 @@ resource "aws_glue_catalog_table" "iceberg_table" {
   depends_on = [aws_s3_object.folder]
 
   lifecycle {
-    # Iceberg tables must not be updated after creation - AWS manages the table
-    # metadata dynamically (snapshots, metadata locations, etc.). Any Terraform
-    # update attempt with metadata_operation="CREATE" corrupts the table's Iceberg
-    # identity, causing GetTableOptimizer to fail with "Unsupported Table type".
-    # Schema changes should be done through Iceberg's ALTER TABLE, not Terraform.
-    ignore_changes = all
+    ignore_changes = [
+      # Prevent TF from fighting with Athena/Iceberg over these dynamic keys
+      parameters["previous_metadata_location"],
+      parameters["metadata_location"],
+      parameters["current-snapshot-id"],
+      parameters["current-snapshot-timestamp-ms"],
+      parameters["current-snapshot-summary"],
+      parameters["snapshot-count"]
+    ]
   }
 
   open_table_format_input {
