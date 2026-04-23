@@ -13,13 +13,14 @@ variable "setup_name" {
   }
 }
 
-variable "clusters" {
-  description = "Map of cluster configurations for PCG writer role authentication"
-  type = map(object({
-    k8s_namespace            = string
-    k8s_service_account_name = string
-    oidc_provider_arn        = string
-  }))
+variable "base_role_arn" {
+  description = "ARN of the fleet-level PCG base role (output of the data_processing module). The per-setup pcg-writer role will trust this role via ABAC."
+  type        = string
+}
+
+variable "pcg_instance_name" {
+  description = "Fleet name used as the PCG_Instance ABAC tag value. Must match the name used in the data_processing module."
+  type        = string
 }
 
 #──────────────────────────────────────────────────────────────

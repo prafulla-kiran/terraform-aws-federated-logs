@@ -146,55 +146,35 @@ resource "aws_iam_policy" "reader_policy" {
   })
 }
 
+# ── PCG Writer Role ───────────────────────────────────────────────────────────
+# Per-setup writer role. Trusts ONLY the fleet base role via ABAC tag matching.
+# The base role must have PCG_Instance = var.pcg_instance_name to satisfy the condition.
+
 resource "aws_iam_role" "pcg-writer-role" {
   name        = "${local.setup_naming_prefix}-pcg-writer"
   description = "IAM Role for Iceberg metadata writer with Glue and S3 access"
 
-  assume_role_policy = local.pcg_auth_mode == "irsa" ? jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      for key, config in var.clusters : {
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Effect = "Allow"
-        Principal = {
-          Federated = config.oidc_provider_arn
-        }
-        Condition = {
-          StringEquals = {
-            "${replace(config.oidc_provider_arn, "/^arn:aws:iam::.*:oidc-provider//", "")}:sub" : "system:serviceaccount:${config.k8s_namespace}:${config.k8s_service_account_name}",
-            "${replace(config.oidc_provider_arn, "/^arn:aws:iam::.*:oidc-provider//", "")}:aud" : "sts.amazonaws.com"
-          }
-        }
-      }
-    ]
-    }) : jsonencode({
+  assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowEksAuthToAssumeRoleForPodIdentity"
         Effect = "Allow"
         Principal = {
-          Service = "pods.eks.amazonaws.com"
+          AWS = var.base_role_arn
         }
-        Action = ["sts:AssumeRole", "sts:TagSession"]
+        Action = "sts:AssumeRole"
         Condition = {
           StringEquals = {
-            "aws:RequestTag/kubernetes-namespace" = [for c in var.clusters : c.k8s_namespace]
+            "aws:PrincipalTag/PCG_Instance" = var.pcg_instance_name
           }
         }
       }
     ]
   })
-}
 
-# Pod Identity: bind the role to each cluster's service account
-resource "aws_eks_pod_identity_association" "pcg_writer" {
-  for_each = { for k, v in var.clusters : k => v if local.pcg_auth_mode == "pod_identity" }
-
-  cluster_name    = each.value.cluster_name
-  namespace       = each.value.k8s_namespace
-  service_account = each.value.k8s_service_account_name
-  role_arn        = aws_iam_role.pcg-writer-role.arn
+  tags = {
+    PCG_Instance = var.pcg_instance_name
+  }
 }
 
 resource "aws_iam_policy" "writer_policy" {

@@ -14,40 +14,14 @@ variable "region" {
   default     = null
 }
 
-variable "clusters" {
-  description = "A map of cluster configurations for federated logging. Set auth_mode to 'irsa' (default) or 'pod_identity'. NOTE: 'pod_identity' requires the 'eks-pod-identity-agent' addon to be installed on each cluster — manage that in your EKS cluster module."
-  type = map(object({
-    auth_mode                = optional(string, "irsa") # "irsa" or "pod_identity"
-    k8s_namespace            = string
-    k8s_service_account_name = string
-    oidc_provider_arn        = optional(string) # Required when auth_mode = "irsa"
-    cluster_name             = optional(string) # Required when auth_mode = "pod_identity"
-  }))
+variable "base_role_arn" {
+  description = "ARN of the fleet-level PCG base role (from the data_processing module). The pcg-writer role trusts this role via ABAC tag matching."
+  type        = string
+}
 
-  validation {
-    condition     = alltrue([for c in var.clusters : length(c.k8s_namespace) > 0 && length(c.k8s_service_account_name) > 0])
-    error_message = "k8s_namespace and k8s_service_account_name must be non-empty for each cluster."
-  }
-
-  validation {
-    condition     = alltrue([for c in var.clusters : contains(["irsa", "pod_identity"], c.auth_mode)])
-    error_message = "auth_mode must be either 'irsa' or 'pod_identity'."
-  }
-
-  validation {
-    condition     = length(distinct([for c in var.clusters : c.auth_mode])) <= 1
-    error_message = "All clusters must use the same auth_mode. Mixing 'irsa' and 'pod_identity' is not supported."
-  }
-
-  validation {
-    condition     = alltrue([for c in var.clusters : c.auth_mode != "irsa" || (c.oidc_provider_arn != null && length(c.oidc_provider_arn) > 0)])
-    error_message = "oidc_provider_arn must be set for clusters using auth_mode = 'irsa'."
-  }
-
-  validation {
-    condition     = alltrue([for c in var.clusters : c.auth_mode != "pod_identity" || (c.cluster_name != null && length(c.cluster_name) > 0)])
-    error_message = "cluster_name must be set for clusters using auth_mode = 'pod_identity'."
-  }
+variable "pcg_instance_name" {
+  description = "Fleet name used as the PCG_Instance ABAC tag value. Must match the name used in the data_processing module."
+  type        = string
 }
 
 variable "setup_name" {
@@ -58,4 +32,3 @@ variable "setup_name" {
     error_message = "The setup_name must be all lowercase and alphanumeric, can contain hyphens but not as the first or last character, and must be between 3 and 26 characters long."
   }
 }
-
