@@ -1,9 +1,3 @@
-data "aws_region" "current" {
-  region = var.region
-}
-
-data "aws_caller_identity" "current" {}
-
 # ── Base Role ────────────────────────────────────────────────────────────────
 # Fleet-level IAM role authenticated via OIDC (IRSA) or Pod Identity.
 # Has NO direct S3/Glue permissions — it can only assume per-setup pcg-writer
@@ -88,7 +82,7 @@ resource "aws_eks_pod_identity_association" "base_role" {
 
 # ── NGEP: AWS Connection Entity + Relationship ────────────────────────────────
 # 1. Creates an AWS Connection Entity storing the base role ARN as credential.
-# 2. Creates an APPLY_TO relationship from fleet_entity_guid → AWS Connection Entity.
+# 2. Creates a HAS_FED_LOGS_BASE_ROLE relationship from fleet_entity_guid → AWS Connection Entity.
 
 resource "null_resource" "aws_connection_entity" {
   triggers = {
@@ -113,7 +107,3 @@ resource "null_resource" "aws_connection_entity" {
   }
 
 }
-
-# TODO: Create FederatedLogsDataProcessingEntity once mutation is available.
-# This entity is fleet-level and references the AWS Connection Entity created above.
-

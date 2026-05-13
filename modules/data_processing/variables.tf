@@ -68,9 +68,3 @@ variable "newrelic_region" {
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."
   }
 }
-
-variable "region" {
-  description = "AWS region where resources will be created. If not set, uses the provider's configured region."
-  type        = string
-  default     = null
-}

@@ -7,6 +7,3 @@ output "base_role_name" {
   description = "Name of the fleet-level PCG base role."
   value       = aws_iam_role.base_role.name
 }
-
-
-# TODO: Expose aws_connection_entity_id and data_processing_entity_id once mutations are stable.

@@ -44,39 +44,22 @@ resp = call_graphql(create_mutation)
 if "errors" in resp:
     errors = resp["errors"]
     if any(e.get("extensions", {}).get("errorClass") == "ENTITY_UNIQUE_CONSTRAINT_VIOLATION" for e in errors):
-        search_query = """
-{
-  actor {
-    entitySearch(query: "name = '%s' AND type = 'AWS_CONNECTION'") {
-      results {
-        entities { guid }
-      }
-    }
-  }
-}
-""" % name
-        search_resp = call_graphql(search_query)
-        entities = search_resp.get('data', {}).get('actor', {}).get('entitySearch', {}).get('results', {}).get('entities', [])
-        if not entities:
-            print("Entity already exists but could not be found by name: %s" % name, file=sys.stderr)
-            sys.exit(1)
-        entity_id = entities[0]['guid']
-        print("AWS Connection Entity already exists, reusing: " + entity_id)
-    else:
-        print("GraphQL errors (create entity): " + json.dumps(errors, indent=2), file=sys.stderr)
-        sys.exit(1)
-else:
-    entity_id = resp['data']['entityManagementCreateAwsConnection']['entity']['id']
-    print("Created AWS Connection Entity: " + entity_id)
+        print("AWS Connection Entity already exists, relationship also already exists. Nothing to do.")
+        sys.exit(0)
+    print("GraphQL errors (create entity): " + json.dumps(errors, indent=2), file=sys.stderr)
+    sys.exit(1)
 
-# Step 2: Create APPLY_TO relationship fleet_entity_guid -> aws_connection_entity
+entity_id = resp['data']['entityManagementCreateAwsConnection']['entity']['id']
+print("Created AWS Connection Entity: " + entity_id)
+
+# Step 2: Create HAS_FED_LOGS_BASE_ROLE relationship fleet_entity_guid -> aws_connection_entity
 rel_mutation = """
 mutation {
   entityManagementCreateRelationship(
     relationship: {
       source: {id: "%s", scope: ORGANIZATION}
       target: {id: "%s", scope: ORGANIZATION}
-      type: "APPLY_TO"
+      type: "HAS_FED_LOGS_BASE_ROLE"
     }
   ) {
     relationship {
@@ -93,4 +76,4 @@ if "errors" in resp:
     print("GraphQL errors (create relationship): " + json.dumps(resp["errors"], indent=2), file=sys.stderr)
     sys.exit(1)
 
-print("Created APPLY_TO relationship: %s -> %s" % (fleet_entity_guid, entity_id))
+print("Created HAS_FED_LOGS_BASE_ROLE relationship: %s -> %s" % (fleet_entity_guid, entity_id))
