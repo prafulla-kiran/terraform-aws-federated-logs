@@ -114,8 +114,7 @@ resource "aws_iam_role" "reader-role" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        # The official NR Account provided in your POC
-        AWS = "arn:aws:iam::${local.nr_source_account}:user/federated-logs-user"
+        AWS = "arn:aws:iam::${local.nr_source_account}:role/NRGlobalIAMRole"
       }
       Action = "sts:AssumeRole"
       Condition = {
