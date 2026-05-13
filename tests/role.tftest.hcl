@@ -83,19 +83,7 @@ run "test_role_naming_conventions" {
       tags = {
         fleet_entity_guid = "test-fleet-entity-guid"
       }
-      assume_role_policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [{
-          Effect    = "Allow"
-          Principal = { AWS = "arn:aws:iam::123456789012:role/newrelic-fed-logs-fleet-test-base" }
-          Action    = ["sts:AssumeRole", "sts:TagSession"]
-          Condition = {
-            StringEquals = {
-              "aws:PrincipalTag/fleet_entity_guid" = "test-fleet-entity-guid"
-            }
-          }
-        }]
-      })
+      assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::123456789012:role/newrelic-fed-logs-fleet-test-base\"},\"Action\":[\"sts:AssumeRole\",\"sts:TagSession\"],\"Condition\":{\"StringEquals\":{\"aws:PrincipalTag/fleet_entity_guid\":\"test-fleet-entity-guid\"}}}]}"
     }
   }
 
