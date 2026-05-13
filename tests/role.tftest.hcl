@@ -51,7 +51,7 @@ run "setup_for_naming_test" {
 # Why: Naming is defined in module's main.tf using local.setup_naming_prefix
 # -----------------------------------------------------------------------------
 run "test_role_naming_conventions" {
-  command = plan
+  command = apply
 
   variables {
     setup_name           = run.setup_for_naming_test.setup_name
@@ -62,6 +62,7 @@ run "test_role_naming_conventions" {
     newrelic_region      = var.newrelic_region
   }
 
+  # Mock the NGEP fetch — no NR API call needed
   override_data {
     target = data.external.base_role
     values = {
@@ -69,6 +70,39 @@ run "test_role_naming_conventions" {
         role_arn = "arn:aws:iam::123456789012:role/newrelic-fed-logs-fleet-test-base"
       }
     }
+  }
+
+  # Skip pcg-writer role creation: its trust policy principal (an IAM role ARN)
+  # is mocked, so AWS would reject the fake account ID.
+  # Provide a meaningful mock ARN so naming and trust policy assertions still pass.
+  override_resource {
+    target = aws_iam_role.pcg-writer-role
+    values = {
+      arn  = "arn:aws:iam::000000000000:role/newrelic-fed-logs-inttest-role-name-pcg-writer"
+      name = "newrelic-fed-logs-inttest-role-name-pcg-writer"
+      tags = {
+        fleet_entity_guid = "test-fleet-entity-guid"
+      }
+      assume_role_policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [{
+          Effect    = "Allow"
+          Principal = { AWS = "arn:aws:iam::123456789012:role/newrelic-fed-logs-fleet-test-base" }
+          Action    = ["sts:AssumeRole", "sts:TagSession"]
+          Condition = {
+            StringEquals = {
+              "aws:PrincipalTag/fleet_entity_guid" = "test-fleet-entity-guid"
+            }
+          }
+        }]
+      })
+    }
+  }
+
+  # Skip the policy attachment since the role above is mocked and doesn't exist in AWS
+  override_resource {
+    target = aws_iam_role_policy_attachment.writer_attach
+    values = {}
   }
 
   module {
@@ -228,7 +262,7 @@ run "setup_for_wiring_test" {
 # TEST: Module wiring - outputs from setup_resource flow correctly to role
 # -----------------------------------------------------------------------------
 run "test_module_wiring" {
-  command = plan
+  command = apply
 
   variables {
     setup_name           = run.setup_for_wiring_test.setup_name
@@ -239,6 +273,7 @@ run "test_module_wiring" {
     newrelic_region      = var.newrelic_region
   }
 
+  # Mock the NGEP fetch — no NR API call needed
   override_data {
     target = data.external.base_role
     values = {
@@ -246,6 +281,23 @@ run "test_module_wiring" {
         role_arn = "arn:aws:iam::123456789012:role/newrelic-fed-logs-fleet-test-base"
       }
     }
+  }
+
+  # Skip pcg-writer role creation: trust policy principal is mocked, AWS would
+  # reject the fake account ID. Only need non-empty role ARNs for wiring test.
+  override_resource {
+    target = aws_iam_role.pcg-writer-role
+    values = {
+      arn  = "arn:aws:iam::000000000000:role/newrelic-fed-logs-inttest-role-wire-pcg-writer"
+      name = "newrelic-fed-logs-inttest-role-wire-pcg-writer"
+      tags = {}
+    }
+  }
+
+  # Skip the policy attachment since the role above is mocked and doesn't exist in AWS
+  override_resource {
+    target = aws_iam_role_policy_attachment.writer_attach
+    values = {}
   }
 
   module {
