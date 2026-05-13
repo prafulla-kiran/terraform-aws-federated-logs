@@ -112,17 +112,6 @@ resource "null_resource" "aws_connection_entity" {
     command = "python3 ${path.module}/scripts/create_aws_connection.py"
   }
 
-  provisioner "local-exec" {
-    when = destroy
-    environment = {
-      NR_API_KEY        = self.triggers.nr_api_key
-      NR_ENDPOINT       = self.triggers.nr_endpoint
-      ENTITY_NAME       = self.triggers.entity_name
-      FLEET_ENTITY_GUID = self.triggers.fleet_entity_guid
-      NR_ORG_ID         = self.triggers.nr_org_id
-    }
-    command = "python3 ${path.module}/scripts/delete_aws_connection.py"
-  }
 }
 
 # TODO: Create FederatedLogsDataProcessingEntity once mutation is available.

@@ -12,7 +12,8 @@ def call_graphql(query):
     payload = json.dumps({"query": query}).encode()
     req = urllib.request.Request(endpoint, data=payload, headers={
         "Content-Type": "application/json",
-        "API-Key": api_key
+        "API-Key": api_key,
+        "X-Query-Source-Capability-Id": "ADD_DATA"
     })
     try:
         return json.loads(urllib.request.urlopen(req).read())
@@ -29,13 +30,14 @@ mutation {
     awsConnectionEntity: {
       name: "%s",
       credential: {assumeRole: {roleArn: "%s"}},
-      scope: {id: "%s", type: ORGANIZATION}
+      scope: {id: "%s", type: ORGANIZATION},
+      tags: [{key: "fleet_entity_guid", values: ["%s"]}]
     }
   ) {
     entity { id }
   }
 }
-""" % (name, role_arn, org_id)
+""" % (name, role_arn, org_id, fleet_entity_guid)
 
 resp = call_graphql(create_mutation)
 
