@@ -22,6 +22,7 @@ nr_api_key        = query["nr_api_key"]
 nr_endpoint       = query["nr_endpoint"]
 
 # Search for the AWS Connection Entity tagged with this fleet_entity_guid
+# TO DO to change this and use new relic providers.
 search_query = """
 {
   actor {

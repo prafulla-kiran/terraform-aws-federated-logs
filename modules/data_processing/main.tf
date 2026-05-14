@@ -84,6 +84,7 @@ resource "aws_eks_pod_identity_association" "base_role" {
 # 1. Creates an AWS Connection Entity storing the base role ARN as credential.
 # 2. Creates a HAS_FED_LOGS_BASE_ROLE relationship from fleet_entity_guid → AWS Connection Entity.
 
+# TODO we will change this to use new relic providers directly. 
 resource "null_resource" "aws_connection_entity" {
   triggers = {
     role_arn          = aws_iam_role.base_role.arn
@@ -92,6 +93,7 @@ resource "null_resource" "aws_connection_entity" {
     entity_name       = "${local.naming_prefix}-aws-connection"
     nr_endpoint       = local.nr_graphql_endpoint
     nr_api_key        = var.newrelic_api_key
+    auth_mode         = local.auth_mode
   }
 
   provisioner "local-exec" {
@@ -102,6 +104,7 @@ resource "null_resource" "aws_connection_entity" {
       FLEET_ENTITY_GUID = var.fleet_entity_guid
       NR_API_KEY        = var.newrelic_api_key
       NR_ENDPOINT       = local.nr_graphql_endpoint
+      AUTH_MODE         = local.auth_mode
     }
     command = "python3 ${path.module}/scripts/create_aws_connection.py"
   }

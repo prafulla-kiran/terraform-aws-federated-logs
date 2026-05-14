@@ -6,10 +6,11 @@ role_arn          = os.environ['ROLE_ARN']
 name              = os.environ['ENTITY_NAME']
 org_id            = os.environ['NR_ORG_ID']
 fleet_entity_guid = os.environ['FLEET_ENTITY_GUID']
+auth_mode         = os.environ['AUTH_MODE']
 
 
-def call_graphql(query):
-    payload = json.dumps({"query": query}).encode()
+def call_graphql(query, variables=None):
+    payload = json.dumps({"query": query, "variables": variables or {}}).encode()
     req = urllib.request.Request(endpoint, data=payload, headers={
         "Content-Type": "application/json",
         "API-Key": api_key,
@@ -22,24 +23,29 @@ def call_graphql(query):
         print("HTTP %d %s\nResponse: %s" % (e.code, e.reason, body), file=sys.stderr)
         sys.exit(1)
 
-
+# TO DO to chagne this to use nr provider if possible
 # Step 1: Create AWS Connection Entity
 create_mutation = """
-mutation {
-  entityManagementCreateAwsConnection(
-    awsConnectionEntity: {
-      name: "%s",
-      credential: {assumeRole: {roleArn: "%s"}},
-      scope: {id: "%s", type: ORGANIZATION},
-      tags: [{key: "fleet_entity_guid", values: ["%s"]}]
-    }
-  ) {
+mutation($input: AwsConnectionEntityInput!) {
+  entityManagementCreateAwsConnection(awsConnectionEntity: $input) {
     entity { id }
   }
 }
-""" % (name, role_arn, org_id, fleet_entity_guid)
+"""
 
-resp = call_graphql(create_mutation)
+create_variables = {
+    "input": {
+        "name": name,
+        "credential": {"assumeRole": {"roleArn": role_arn}},
+        "scope": {"id": org_id, "type": "ORGANIZATION"},
+        "tags": [
+            {"key": "fleet_entity_guid", "values": [fleet_entity_guid]},
+            {"key": "auth_mode",         "values": [auth_mode]},
+        ],
+    }
+}
+
+resp = call_graphql(create_mutation, create_variables)
 
 if "errors" in resp:
     errors = resp["errors"]
@@ -54,14 +60,8 @@ print("Created AWS Connection Entity: " + entity_id)
 
 # Step 2: Create HAS_FED_LOGS_BASE_ROLE relationship fleet_entity_guid -> aws_connection_entity
 rel_mutation = """
-mutation {
-  entityManagementCreateRelationship(
-    relationship: {
-      source: {id: "%s", scope: ORGANIZATION}
-      target: {id: "%s", scope: ORGANIZATION}
-      type: "HAS_FED_LOGS_BASE_ROLE"
-    }
-  ) {
+mutation($input: EntityManagementRelationshipInput!) {
+  entityManagementCreateRelationship(relationship: $input) {
     relationship {
       type
       source { id }
@@ -69,9 +69,17 @@ mutation {
     }
   }
 }
-""" % (fleet_entity_guid, entity_id)
+"""
 
-resp = call_graphql(rel_mutation)
+rel_variables = {
+    "input": {
+        "source": {"id": fleet_entity_guid, "scope": "ORGANIZATION"},
+        "target": {"id": entity_id,          "scope": "ORGANIZATION"},
+        "type":   "HAS_FED_LOGS_BASE_ROLE",
+    }
+}
+
+resp = call_graphql(rel_mutation, rel_variables)
 if "errors" in resp:
     print("GraphQL errors (create relationship): " + json.dumps(resp["errors"], indent=2), file=sys.stderr)
     sys.exit(1)

@@ -8,6 +8,11 @@ output "base_role_name" {
   value       = aws_iam_role.base_role.name
 }
 
+output "aws_connection_entity_name" {
+  description = "Name of the AWS Connection entity created in New Relic. Use this to look up the entity in the NR UI."
+  value       = "${local.naming_prefix}-aws-connection"
+}
+
 output "base_role_tags" {
   description = "Tags applied to the fleet-level base role."
   value       = aws_iam_role.base_role.tags
