@@ -77,7 +77,6 @@ run "roles" {
     s3_bucket_name       = run.setup.s3_bucket_name
     glue_catalog_db_name = run.setup.glue_catalog_db_name
     fleet_entity_guid    = "test-fleet-entity-guid"
-    newrelic_api_key     = "test-nr-api-key"
     newrelic_region      = "US"
   }
 

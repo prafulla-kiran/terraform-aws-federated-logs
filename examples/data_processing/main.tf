@@ -3,7 +3,6 @@ module "data_processing" {
 
   data_processing_module_name = "my-app-logs"
   newrelic_org_id             = "YOUR_NR_ORG_ID"
-  newrelic_api_key            = "YOUR_NR_API_KEY"
   fleet_entity_guid           = "YOUR_FLEET_ENTITY_GUID"
 
   clusters = {

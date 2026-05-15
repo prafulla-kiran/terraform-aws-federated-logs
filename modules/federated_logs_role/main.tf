@@ -9,7 +9,6 @@ data "external" "base_role" {
   program = ["python3", "${path.module}/scripts/fetch_base_role.py"]
   query = {
     fleet_entity_guid = var.fleet_entity_guid
-    nr_api_key        = var.newrelic_api_key
     nr_endpoint       = local.nr_graphql_endpoint
   }
 }

@@ -1,7 +1,10 @@
 import json, urllib.request, os, sys
 
 endpoint          = os.environ['NR_ENDPOINT']
-api_key           = os.environ['NR_API_KEY']
+nr_api_key           = os.environ['NEWRELIC_API_KEY']
+if not nr_api_key:
+    print("Error: NEWRELIC_API_KEY environment variable is not set", file=sys.stderr)
+    sys.exit(1)
 role_arn          = os.environ['ROLE_ARN']
 name              = os.environ['ENTITY_NAME']
 org_id            = os.environ['NR_ORG_ID']
@@ -13,7 +16,7 @@ def call_graphql(query, variables=None):
     payload = json.dumps({"query": query, "variables": variables or {}}).encode()
     req = urllib.request.Request(endpoint, data=payload, headers={
         "Content-Type": "application/json",
-        "API-Key": api_key,
+        "API-Key": nr_api_key,
         "X-Query-Source-Capability-Id": "ADD_DATA"
     })
     try:

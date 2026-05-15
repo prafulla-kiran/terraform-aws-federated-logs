@@ -17,7 +17,6 @@
 variables {
   test_oidc_arn     = "arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE"
   fleet_entity_guid = "test-fleet-entity-guid"
-  newrelic_api_key  = "test-nr-api-key"
   newrelic_org_id   = "test-nr-org-id"
   newrelic_region   = "US"
 }
@@ -32,7 +31,6 @@ run "test_base_role_naming_and_abac" {
   variables {
     data_processing_module_name = "inttest-dp-name"
     fleet_entity_guid           = var.fleet_entity_guid
-    newrelic_api_key            = var.newrelic_api_key
     newrelic_org_id             = var.newrelic_org_id
     newrelic_region             = var.newrelic_region
     clusters = {
@@ -83,7 +81,6 @@ run "test_validation_rejects_empty_namespace" {
   variables {
     data_processing_module_name = "inttest-dp-val1"
     fleet_entity_guid           = var.fleet_entity_guid
-    newrelic_api_key            = var.newrelic_api_key
     newrelic_org_id             = var.newrelic_org_id
     newrelic_region             = var.newrelic_region
     clusters = {
@@ -108,7 +105,6 @@ run "test_validation_rejects_empty_service_account" {
   variables {
     data_processing_module_name = "inttest-dp-val2"
     fleet_entity_guid           = var.fleet_entity_guid
-    newrelic_api_key            = var.newrelic_api_key
     newrelic_org_id             = var.newrelic_org_id
     newrelic_region             = var.newrelic_region
     clusters = {
@@ -133,7 +129,6 @@ run "test_validation_rejects_empty_oidc_arn" {
   variables {
     data_processing_module_name = "inttest-dp-val3"
     fleet_entity_guid           = var.fleet_entity_guid
-    newrelic_api_key            = var.newrelic_api_key
     newrelic_org_id             = var.newrelic_org_id
     newrelic_region             = var.newrelic_region
     clusters = {
@@ -158,7 +153,6 @@ run "test_validation_rejects_mixed_auth_modes" {
   variables {
     data_processing_module_name = "inttest-dp-val4"
     fleet_entity_guid           = var.fleet_entity_guid
-    newrelic_api_key            = var.newrelic_api_key
     newrelic_org_id             = var.newrelic_org_id
     newrelic_region             = var.newrelic_region
     clusters = {
