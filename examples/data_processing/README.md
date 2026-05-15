@@ -11,6 +11,14 @@ It creates:
 
 The `base_role_arn` output is available for reference. The `fleet_entity_guid` is passed directly to each `federated_logs_setup` deployment.
 
+## Prerequisites
+
+Export your New Relic API key as an environment variable before running Terraform:
+
+```sh
+export NEWRELIC_API_KEY="your-new-relic-api-key"
+```
+
 ## Usage
 
 ```sh
