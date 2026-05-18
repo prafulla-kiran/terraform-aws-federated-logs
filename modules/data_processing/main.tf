@@ -92,7 +92,6 @@ resource "null_resource" "aws_connection_entity" {
     fleet_entity_guid = var.fleet_entity_guid
     entity_name       = "${local.naming_prefix}-aws-connection"
     nr_endpoint       = local.nr_graphql_endpoint
-    nr_api_key        = var.newrelic_api_key
     auth_mode         = local.auth_mode
   }
 
@@ -102,7 +101,6 @@ resource "null_resource" "aws_connection_entity" {
       ENTITY_NAME       = "${local.naming_prefix}-aws-connection"
       NR_ORG_ID         = var.newrelic_org_id
       FLEET_ENTITY_GUID = var.fleet_entity_guid
-      NR_API_KEY        = var.newrelic_api_key
       NR_ENDPOINT       = local.nr_graphql_endpoint
       AUTH_MODE         = local.auth_mode
     }

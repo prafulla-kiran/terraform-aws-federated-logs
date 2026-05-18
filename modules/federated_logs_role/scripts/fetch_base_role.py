@@ -1,11 +1,11 @@
-import json, urllib.request, sys
+import json, os, urllib.request, sys
 
 
-def call_graphql(endpoint, api_key, query):
+def call_graphql(endpoint, nr_api_key, query):
     payload = json.dumps({"query": query}).encode()
     req = urllib.request.Request(endpoint, data=payload, headers={
         "Content-Type": "application/json",
-        "API-Key": api_key,
+        "API-Key": nr_api_key,
         "X-Query-Source-Capability-Id": "ADD_DATA"
     })
     try:
@@ -16,9 +16,13 @@ def call_graphql(endpoint, api_key, query):
         sys.exit(1)
 
 
+nr_api_key = os.environ['NEWRELIC_API_KEY']
+if not nr_api_key:
+    print("Error: NEWRELIC_API_KEY environment variable is not set", file=sys.stderr)
+    sys.exit(1)
+    
 query = json.load(sys.stdin)
 fleet_entity_guid = query["fleet_entity_guid"]
-nr_api_key        = query["nr_api_key"]
 nr_endpoint       = query["nr_endpoint"]
 
 # Search for the AWS Connection Entity tagged with this fleet_entity_guid

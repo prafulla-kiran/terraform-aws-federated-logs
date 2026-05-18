@@ -17,7 +17,6 @@
 # Shared test variables
 variables {
   fleet_entity_guid = "test-fleet-entity-guid"
-  newrelic_api_key  = "test-nr-api-key"
   newrelic_region   = "US"
 }
 
@@ -58,7 +57,6 @@ run "test_role_naming_conventions" {
     s3_bucket_name       = run.setup_for_naming_test.s3_bucket_name
     glue_catalog_db_name = run.setup_for_naming_test.glue_catalog_db_name
     fleet_entity_guid    = var.fleet_entity_guid
-    newrelic_api_key     = var.newrelic_api_key
     newrelic_region      = var.newrelic_region
   }
 
@@ -257,7 +255,6 @@ run "test_module_wiring" {
     s3_bucket_name       = run.setup_for_wiring_test.s3_bucket_name
     glue_catalog_db_name = run.setup_for_wiring_test.glue_catalog_db_name
     fleet_entity_guid    = var.fleet_entity_guid
-    newrelic_api_key     = var.newrelic_api_key
     newrelic_region      = var.newrelic_region
   }
 

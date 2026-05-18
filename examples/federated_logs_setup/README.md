@@ -14,6 +14,14 @@ It creates:
 
 The `fleet_entity_guid` is the GUID of your PCG fleet entity in New Relic, available from your PCG installation.
 
+## Prerequisites
+
+Export your New Relic API key as an environment variable before running Terraform:
+
+```sh
+export NEWRELIC_API_KEY="your-new-relic-api-key"
+```
+
 ## Usage
 
 ```sh

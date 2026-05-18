@@ -53,12 +53,6 @@ variable "newrelic_org_id" {
   type        = string
 }
 
-variable "newrelic_api_key" {
-  description = "New Relic User API key for NerdGraph mutations."
-  type        = string
-  sensitive   = true
-}
-
 variable "newrelic_region" {
   description = "New Relic region: 'US', 'EU', or 'STAGING'."
   type        = string
