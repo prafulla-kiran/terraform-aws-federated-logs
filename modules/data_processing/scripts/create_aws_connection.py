@@ -29,7 +29,7 @@ def call_graphql(query, variables=None):
 # TO DO to change this to use nr provider if possible
 # Step 1: Create AWS Connection Entity
 create_mutation = """
-mutation($input: AwsConnectionEntityInput!) {
+mutation($input: EntityManagementAwsConnectionEntityCreateInput!) {
   entityManagementCreateAwsConnection(awsConnectionEntity: $input) {
     entity { id }
   }
@@ -63,7 +63,7 @@ print("Created AWS Connection Entity: " + entity_id)
 
 # Step 2: Create HAS_FED_LOGS_BASE_ROLE relationship fleet_entity_guid -> aws_connection_entity
 rel_mutation = """
-mutation($input: EntityManagementRelationshipInput!) {
+mutation($input: EntityManagementRelationshipCreateInput!) {
   entityManagementCreateRelationship(relationship: $input) {
     relationship {
       type
