@@ -5,6 +5,9 @@ module "federated_logs" {
   fleet_entity_guid = "YOUR_FLEET_ENTITY_GUID"
   # newrelic_region = "US" # "US" (default), "EU", or "STAGING"
 
+  # SQS queue ARN from the data_processing module
+  sqs_queue_arn = "arn:aws:sqs:us-east-2:123456789012:newrelic-fed-logs-iceberg-file-events"
+
   # AWS region where resources will be created. If not set, uses the provider's configured region.
   #region = "us-east-2"
 

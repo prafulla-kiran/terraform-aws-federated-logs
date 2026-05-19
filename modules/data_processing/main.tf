@@ -149,7 +149,7 @@ resource "aws_iam_role_policy" "flink_abac_assume_policy" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams",
         ]
-        Resource = ["arn:aws:logs:${data.aws_region.current.name}:*:log-group:/aws/kinesis-analytics/*"]
+        Resource = ["arn:aws:logs:${data.aws_region.current.id}:*:log-group:/aws/kinesis-analytics/*"]
       },
       # CloudWatch Metrics: emit application-level metrics
       {
@@ -160,10 +160,10 @@ resource "aws_iam_role_policy" "flink_abac_assume_policy" {
       },
       # Secrets Manager: read the New Relic license key
       {
-        Sid    = "SecretsManagerAccess"
-        Effect = "Allow"
-        Action = ["secretsmanager:GetSecretValue"]
-        Resource = ["arn:aws:secretsmanager:${data.aws_region.current.name}:*:secret:pcg/flink-iceberg-commit-worker/*"]
+        Sid      = "SecretsManagerAccess"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = ["arn:aws:secretsmanager:${data.aws_region.current.id}:*:secret:pcg/flink-iceberg-commit-worker/*"]
       },
       # ABAC: assume setup-specific pcg-writer roles in any account
       {

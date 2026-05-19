@@ -1,7 +1,8 @@
 module "setup" {
-  source     = "./modules/federated_logs_setup_resource"
-  setup_name = var.setup_name
-  region     = var.region
+  source        = "./modules/federated_logs_setup_resource"
+  setup_name    = var.setup_name
+  sqs_queue_arn = var.sqs_queue_arn
+  region        = var.region
 }
 
 module "role" {
