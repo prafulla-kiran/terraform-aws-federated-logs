@@ -49,7 +49,17 @@ output "base_role_arn_from_ngep" {
   value       = data.external.base_role.result["role_arn"]
 }
 
+output "fleet_ingest_connection_id" {
+  description = "NGEP guid of the fleet-level AWS Connection entity (the one created by data_processing/scripts/create_aws_connection.py). Same entity that fetch_base_role.py looks up by fleet_entity_guid tag — its guid is the connection_id consumed as `newrelic_federated_logs_setup.storage.data_ingest_connection_id`."
+  value       = data.external.base_role.result["connection_id"]
+}
+
 output "pcg_writer_role_tags" {
   description = "Tags applied to the PCG writer role."
   value       = aws_iam_role.pcg-writer-role.tags
+}
+
+output "query_connection_id" {
+  description = "NGEP guid of the per-setup AWS Connection entity wrapping the reader role. Created via create_query_aws_connection.py (idempotent) and looked up by tag via fetch_query_aws_connection_id.py — same two-step shape as the data_processing module's fleet ingest connection + fetch_base_role.py. Used as `newrelic_federated_logs_setup.storage.query_connection_id`."
+  value       = data.external.query_connection.result["connection_id"]
 }

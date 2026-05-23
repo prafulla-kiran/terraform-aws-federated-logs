@@ -250,3 +250,33 @@ resource "aws_iam_role_policy_attachment" "writer_attach" {
   role       = aws_iam_role.pcg-writer-role.name
   policy_arn = aws_iam_policy.writer_policy.arn
 }
+
+resource "null_resource" "create_query_aws_connection" {
+  triggers = {
+    role_arn    = aws_iam_role.reader-role.arn
+    nr_org_id   = var.newrelic_org_id
+    setup_name  = var.setup_name
+    entity_name = "${local.setup_naming_prefix}-query-aws-connection"
+    nr_endpoint = local.nr_graphql_endpoint
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      ROLE_ARN    = aws_iam_role.reader-role.arn
+      ENTITY_NAME = "${local.setup_naming_prefix}-query-aws-connection"
+      NR_ORG_ID   = var.newrelic_org_id
+      NR_ENDPOINT = local.nr_graphql_endpoint
+      SETUP_NAME  = var.setup_name
+    }
+    command = "python3 ${path.module}/scripts/create_query_aws_connection.py"
+  }
+}
+
+data "external" "query_connection" {
+  program = ["python3", "${path.module}/scripts/fetch_query_aws_connection_id.py"]
+  query = {
+    setup_name  = var.setup_name
+    nr_endpoint = local.nr_graphql_endpoint
+  }
+  depends_on = [null_resource.create_query_aws_connection]
+}

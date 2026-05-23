@@ -20,9 +20,9 @@ variable "fleet_entity_guid" {
 }
 
 variable "newrelic_region" {
-  description = "New Relic region: 'US', 'EU', or 'STAGING'."
+  description = "New Relic region: 'US', 'EU', or 'STAGING'. Default mirrors the top-level default (STAGING) so standalone module use lands on the same endpoint."
   type        = string
-  default     = "US"
+  default     = "STAGING"
   validation {
     condition     = contains(["US", "EU", "STAGING"], var.newrelic_region)
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."
@@ -36,4 +36,9 @@ variable "setup_name" {
     condition     = can(regex("^[a-z0-9][a-z0-9-]{1,24}[a-z0-9]$", var.setup_name))
     error_message = "The setup_name must be all lowercase and alphanumeric, can contain hyphens but not as the first or last character, and must be between 3 and 26 characters long."
   }
+}
+
+variable "newrelic_org_id" {
+  description = "New Relic organization ID (UUID). Used by create_query_aws_connection.py as the scope_id when creating the per-setup query AWS Connection entity (scope_type = ORGANIZATION)."
+  type        = string
 }

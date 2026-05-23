@@ -18,10 +18,21 @@ variable "fleet_entity_guid" {
   type        = string
 }
 
-variable "newrelic_region" {
-  description = "New Relic region: 'US', 'EU', or 'STAGING'."
+variable "newrelic_org_id" {
+  description = "New Relic organization ID (UUID). Used as scope_id on the per-setup query AWS Connection (scope_type = ORGANIZATION)."
   type        = string
-  default     = "US"
+}
+
+variable "default_partition_data_retention_days" {
+  description = "Number of days to retain logs in the default partition. Set to 0 (default) to omit data_retention_policy on the default partition."
+  type        = number
+  default     = 0
+}
+
+variable "newrelic_region" {
+  description = "New Relic region: 'US', 'EU', or 'STAGING'. Defaults to STAGING because the federatedLogs* wrapper mutations are mocked on prod — staging is the only environment where the new newrelic_federated_logs_setup resource exercises the real path. Override to 'US'/'EU' once the wrapper API is live in prod."
+  type        = string
+  default     = "STAGING"
   validation {
     condition     = contains(["US", "EU", "STAGING"], var.newrelic_region)
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."

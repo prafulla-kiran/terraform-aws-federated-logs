@@ -33,12 +33,15 @@ variable "clusters" {
   }
 
   validation {
-    condition     = alltrue([for c in var.clusters : c.auth_mode != "irsa" || (c.oidc_provider_arn != null && length(c.oidc_provider_arn) > 0)])
+    # try() is the null-safe form: terraform doesn't short-circuit `||`/`&&`
+    # inside validations, so the previous `c.X != null && length(c.X) > 0`
+    # blew up with length(null) on the other auth_mode (where X is legitimately null).
+    condition     = alltrue([for c in var.clusters : c.auth_mode != "irsa" || try(length(c.oidc_provider_arn) > 0, false)])
     error_message = "oidc_provider_arn must be set for clusters using auth_mode = 'irsa'."
   }
 
   validation {
-    condition     = alltrue([for c in var.clusters : c.auth_mode != "pod_identity" || (c.cluster_name != null && length(c.cluster_name) > 0)])
+    condition     = alltrue([for c in var.clusters : c.auth_mode != "pod_identity" || try(length(c.cluster_name) > 0, false)])
     error_message = "cluster_name must be set for clusters using auth_mode = 'pod_identity'."
   }
 }
@@ -54,9 +57,9 @@ variable "newrelic_org_id" {
 }
 
 variable "newrelic_region" {
-  description = "New Relic region: 'US', 'EU', or 'STAGING'."
+  description = "New Relic region: 'US', 'EU', or 'STAGING'. Defaults to STAGING for parity with the top-level + role module defaults — the federatedLogs* wrapper APIs are mocked on prod, so staging is the active integration target. Override once the wrapper API is live in prod."
   type        = string
-  default     = "US"
+  default     = "STAGING"
   validation {
     condition     = contains(["US", "EU", "STAGING"], var.newrelic_region)
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."

@@ -16,9 +16,9 @@ def call_graphql(endpoint, nr_api_key, query):
         sys.exit(1)
 
 
-nr_api_key = os.environ['NEWRELIC_API_KEY']
+nr_api_key = os.environ['NEW_RELIC_API_KEY']
 if not nr_api_key:
-    print("Error: NEWRELIC_API_KEY environment variable is not set", file=sys.stderr)
+    print("Error: NEW_RELIC_API_KEY environment variable is not set", file=sys.stderr)
     sys.exit(1)
     
 query = json.load(sys.stdin)
@@ -63,4 +63,8 @@ if not role_arn:
     print("credential.assumeRole.roleArn tag not found on entity: %s" % entity["guid"], file=sys.stderr)
     sys.exit(1)
 
-print(json.dumps({"role_arn": role_arn}))
+# entity["guid"] is the fleet ingest connection_id — same entity created by
+# data_processing/scripts/create_aws_connection.py. Returning it here lets the
+# role module expose it as `fleet_ingest_connection_id` so the federated logs
+# setup can wire `storage.data_ingest_connection_id` without an extra var.
+print(json.dumps({"role_arn": role_arn, "connection_id": entity["guid"]}))
