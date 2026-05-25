@@ -10,4 +10,8 @@ locals {
   # assumption at runtime.
   nr_reader_role_suffix = "nr-query"
 
+  nr_graphql_endpoint = var.newrelic_region == "EU" ? "https://api.eu.newrelic.com/graphql" : (
+    var.newrelic_region == "STAGING" ? "https://staging-api.newrelic.com/graphql" : "https://api.newrelic.com/graphql"
+  )
+
 }
