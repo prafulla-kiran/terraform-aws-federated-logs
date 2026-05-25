@@ -38,12 +38,3 @@ variable "setup_name" {
   }
 }
 
-# WARNING [DO NOT CHANGE]: The reader role name suffix is part of a cross-repo contract
-# with the New Relic hub account: NRGlobalIAMRole's inline policy only allows
-# sts:AssumeRole on role ARNs matching `newrelic-fed-logs-*-nr-query`. Changing this value
-# here will break cross-account assumption at runtime.
-variable "nr_reader_role_suffix" {
-  description = "Suffix for the cross-account reader role name. DO NOT CHANGE — must match the hub's customer_role_pattern (`newrelic-fed-logs-*-nr-query`)."
-  type        = string
-  default     = "nr-query"
-}
