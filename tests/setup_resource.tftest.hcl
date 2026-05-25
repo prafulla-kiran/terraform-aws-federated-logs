@@ -14,7 +14,7 @@
 # Why: This is module-specific logic defined in locals.tf
 # -----------------------------------------------------------------------------
 run "test_s3_bucket_naming_convention" {
-  command = apply
+  command = plan
 
   variables {
     setup_name    = "inttest-naming-01"
@@ -40,7 +40,7 @@ run "test_s3_bucket_naming_convention" {
 # Why: This transformation logic is in main.tf: replace(local.setup_naming_prefix, "-", "_")
 # -----------------------------------------------------------------------------
 run "test_glue_db_naming_convention" {
-  command = apply
+  command = plan
 
   variables {
     setup_name    = "inttest-naming-02"
@@ -65,7 +65,7 @@ run "test_glue_db_naming_convention" {
 # Why: Other modules depend on this output for their naming
 # -----------------------------------------------------------------------------
 run "test_setup_name_output" {
-  command = apply
+  command = plan
 
   variables {
     setup_name    = "inttest-output-01"

@@ -30,7 +30,7 @@ resource "aws_s3_bucket_notification" "this" {
 # Filters by:
 #   bucket name  → only this bucket
 #   key wildcard → only files matching *pcg-*.parquet
-#   reason       → PutObject only (excludes CompleteMultipartUpload, CopyObject)
+#   reason       → PutObject or CompleteMultipartUpload (large files >5MB use multipart)
 resource "aws_cloudwatch_event_rule" "iceberg_file_events" {
   name        = "${local.setup_naming_prefix}-iceberg-file-created"
   description = "Fires when a .parquet file is created in ${local.setup_naming_prefix}"
@@ -45,7 +45,7 @@ resource "aws_cloudwatch_event_rule" "iceberg_file_events" {
       object = {
         key = [{ wildcard = "*pcg-*.parquet" }]
       }
-      reason = ["PutObject"]
+      reason = ["PutObject", "CompleteMultipartUpload"]
     }
   })
 }

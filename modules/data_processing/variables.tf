@@ -64,15 +64,6 @@ variable "newrelic_region" {
 }
 
 # =============================================================================
-# SQS / EVENTBRIDGE VARIABLES
-# =============================================================================
-
-variable "eventbridge_rule_arn" {
-  description = "ARN of the per-setup EventBridge rule (from federated_logs_setup_resource) used to scope the SQS queue policy."
-  type        = string
-}
-
-# =============================================================================
 # FLINK VARIABLES
 # =============================================================================
 
@@ -93,10 +84,33 @@ variable "flink_runtime" {
   default     = "FLINK-1_18"
 }
 
+variable "iceberg_catalog_warehouse" {
+  description = "S3 path for the Iceberg catalog warehouse (e.g. s3://bucket-name/warehouse/). Required by the Flink commit worker."
+  type        = string
+}
+
 variable "parallelism" {
-  description = "Flink application parallelism."
+  description = "Flink application parallelism. For I/O-bound workloads, higher parallelism with parallelism_per_kpu=8 is cost-effective."
   type        = number
-  default     = 1
+  default     = 8
+}
+
+variable "parallelism_per_kpu" {
+  description = "Parallelism per KPU. For I/O-bound workloads like Iceberg commits, 8 is recommended (CDD §5). This maximizes parallel tasks per KPU, reducing cost."
+  type        = number
+  default     = 8
+}
+
+variable "auto_scaling_enabled" {
+  description = "Enable Flink auto-scaling. When parallelism=1, auto-scaling can only scale up. Set to false until a meaningful parallelism floor is configured."
+  type        = bool
+  default     = false
+}
+
+variable "checkpoint_based_commits_enabled" {
+  description = "Enable checkpoint-aligned commits (EXACTLY_ONCE semantics per CDD §3.5). When true, uses IcebergCommitOperator; when false, uses legacy IcebergCommitProcessor which may produce duplicates on crash recovery."
+  type        = bool
+  default     = true
 }
 
 variable "checkpoint_interval_ms" {
@@ -152,9 +166,9 @@ variable "sqs_message_retention" {
 }
 
 variable "sqs_max_receive_count" {
-  description = "Maximum number of receives before a message is moved to the DLQ."
+  description = "Maximum number of receives before a message is moved to the DLQ (CDD recommends 3)."
   type        = number
-  default     = 5
+  default     = 3
 }
 
 # =============================================================================

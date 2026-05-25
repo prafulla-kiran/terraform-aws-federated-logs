@@ -5,12 +5,18 @@ module "data_processing" {
   newrelic_org_id             = "YOUR_NR_ORG_ID"
   fleet_entity_guid           = "YOUR_FLEET_ENTITY_GUID"
 
-  # EventBridge rule ARN from the federated_logs_setup_resource module
-  eventbridge_rule_arn = "arn:aws:events:us-east-2:123456789012:rule/newrelic-fed-logs-my-setup-iceberg-file-created"
-
   # Flink configuration
   flink_jar_bucket            = "my-flink-jars-bucket"
   newrelic_license_key_secret = "newrelic/license-key"
+  iceberg_catalog_warehouse   = "s3://my-warehouse-bucket/warehouse/"
+
+  # Flink parallelism settings (defaults optimized for I/O-bound workloads per CDD §5)
+  # parallelism         = 8   # Number of parallel tasks
+  # parallelism_per_kpu = 8   # Tasks per KPU (8 maximizes cost efficiency for I/O workloads)
+  # auto_scaling_enabled = false  # Disabled until meaningful parallelism floor is set
+
+  # Checkpoint-aligned commits for EXACTLY_ONCE semantics (CDD §3.5)
+  # checkpoint_based_commits_enabled = true
 
   clusters = {
     "cluster-1" = {

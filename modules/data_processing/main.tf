@@ -106,8 +106,8 @@ resource "aws_iam_role" "flink_role" {
   }
 }
 
-resource "aws_iam_role_policy" "flink_abac_assume_policy" {
-  name = "${local.naming_prefix}-flink-abac-assume"
+resource "aws_iam_role_policy" "flink_role_policy" {
+  name = "${local.naming_prefix}-flink-policy"
   role = aws_iam_role.flink_role.id
 
   policy = jsonencode({
@@ -183,6 +183,7 @@ resource "aws_iam_role_policy" "flink_abac_assume_policy" {
 # ── Flink Application ─────────────────────────────────────────────────────────
 
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
 
 resource "aws_cloudwatch_log_group" "flink_log_group" {
   name              = "/aws/kinesis-analytics/${local.naming_prefix}-flink-application"
@@ -236,8 +237,8 @@ resource "aws_kinesisanalyticsv2_application" "flink_iceberg_commit_worker" {
       parallelism_configuration {
         configuration_type   = "CUSTOM"
         parallelism          = var.parallelism
-        parallelism_per_kpu  = 1
-        auto_scaling_enabled = true
+        parallelism_per_kpu  = var.parallelism_per_kpu
+        auto_scaling_enabled = var.auto_scaling_enabled
       }
     }
 
@@ -265,6 +266,8 @@ resource "aws_kinesisanalyticsv2_application" "flink_iceberg_commit_worker" {
           "schema.evolution.max.retries"    = "3"
           "schema.evolution.retry.delay.ms" = "1000"
 
+          "checkpoint.based.commits.enabled" = tostring(var.checkpoint_based_commits_enabled)
+
           "flink.parallelism"         = tostring(var.parallelism)
           "flink.checkpoint.interval" = tostring(var.checkpoint_interval_ms)
 
@@ -288,7 +291,7 @@ resource "aws_kinesisanalyticsv2_application" "flink_iceberg_commit_worker" {
   })
 
   depends_on = [
-    aws_iam_role_policy.flink_abac_assume_policy,
+    aws_iam_role_policy.flink_role_policy,
     aws_cloudwatch_log_stream.flink_log_stream,
     aws_s3_object_copy.flink_jar,
   ]
@@ -350,10 +353,15 @@ resource "aws_sqs_queue_policy" "iceberg_file_events_policy" {
         Action   = "sqs:SendMessage"
         Resource = aws_sqs_queue.iceberg_file_events.arn
         Condition = {
-          ArnEquals = {
-            # Scoped to the specific EventBridge rule — prevents other rules
-            # from writing to this queue
-            "aws:SourceArn" = var.eventbridge_rule_arn
+          StringEquals = {
+            # Lock to the account where data_processing is deployed.
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+          ArnLike = {
+            # Matches every per-setup EventBridge rule that follows the naming
+            # convention — new setups are automatically allowed without updating
+            # this policy.
+            "aws:SourceArn" = local.sqs_eventbridge_source_arn_pattern
           }
         }
       }
