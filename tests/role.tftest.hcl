@@ -32,7 +32,7 @@ variables {
 
 # Step 1: Create setup resources (dependency for role module)
 run "setup_for_naming_test" {
-  command = apply
+  command = plan
 
   variables {
     setup_name    = "inttest-role-name"
@@ -228,7 +228,7 @@ run "test_role_naming_conventions" {
 # =============================================================================
 
 run "setup_for_wiring_test" {
-  command = apply
+  command = plan
 
   variables {
     setup_name    = "inttest-role-wire"
