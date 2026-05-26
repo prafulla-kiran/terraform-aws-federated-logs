@@ -1,4 +1,4 @@
-variable "sqs_queue_arn" {
-  description = "ARN of the SQS queue from the data_processing module. Pass this when deploying the setup module separately from data_processing."
+variable "fleet_entity_guid" {
+  description = "NGEP entity GUID of the fleet. Used to look up the SQS queue ARN from the AWS Connection Entity."
   type        = string
 }

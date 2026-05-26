@@ -2,14 +2,12 @@ module "federated_logs" {
   source = "../../"
 
   setup_name        = "my-app-logs"
-  fleet_entity_guid = "YOUR_FLEET_ENTITY_GUID"
+  fleet_entity_guid = var.fleet_entity_guid
   # newrelic_region = "US" # "US" (default), "EU", or "STAGING"
 
-  # SQS queue ARN output from your data_processing module deployment.
-  # Reference directly when both modules are in the same root:
-  #   sqs_queue_arn = module.data_processing.sqs_queue_arn
-  # Or pass as a variable when deploying separately.
-  sqs_queue_arn = var.sqs_queue_arn
+  # IAM role ARN that Flink will AssumeRole into for Iceberg commits.
+  # This is typically the pcg-writer role ARN from your federated_logs_role module.
+  # flink_assume_role_arn = module.federated_logs_role.pcg_writer_role_arn
 
   # AWS region where resources will be created. If not set, uses the provider's configured region.
   #region = "us-east-2"
