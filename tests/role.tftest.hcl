@@ -15,6 +15,8 @@
 # =============================================================================
 
 # Mock the external provider to avoid requiring NEWRELIC_API_KEY in CI
+# Note: AWS provider is NOT mocked here because role tests use "command = apply"
+# and need real AWS resources (IAM roles/policies) to be created in CI.
 mock_provider "external" {
   mock_data "external" {
     defaults = {
@@ -22,23 +24,6 @@ mock_provider "external" {
         role_arn      = "arn:aws:iam::123456789012:role/mock-role"
         sqs_queue_arn = "arn:aws:sqs:us-east-1:123456789012:mock-queue"
       }
-    }
-  }
-}
-
-# Mock AWS provider for data sources
-mock_provider "aws" {
-  mock_data "aws_region" {
-    defaults = {
-      name = "us-east-1"
-      id   = "us-east-1"
-    }
-  }
-  mock_data "aws_caller_identity" {
-    defaults = {
-      account_id = "123456789012"
-      arn        = "arn:aws:iam::123456789012:root"
-      user_id    = "AIDAEXAMPLE"
     }
   }
 }
