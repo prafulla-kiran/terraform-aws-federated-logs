@@ -158,13 +158,6 @@ resource "aws_iam_role_policy" "flink_role_policy" {
         Action   = ["cloudwatch:PutMetricData"]
         Resource = ["*"]
       },
-      # Secrets Manager: read the New Relic license key
-      {
-        Sid      = "SecretsManagerAccess"
-        Effect   = "Allow"
-        Action   = ["secretsmanager:GetSecretValue"]
-        Resource = ["arn:aws:secretsmanager:${data.aws_region.current.id}:*:secret:pcg/flink-iceberg-commit-worker/*"]
-      },
       # ABAC: assume setup-specific pcg-writer roles in any account
       {
         Effect   = "Allow"
@@ -184,6 +177,11 @@ resource "aws_iam_role_policy" "flink_role_policy" {
 
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
+
+# Read NR license key from environment variable (never stored in Terraform state)
+data "external" "license_key" {
+  program = ["python3", "${path.module}/scripts/get_license_key.py"]
+}
 
 resource "aws_cloudwatch_log_group" "flink_log_group" {
   name              = "/aws/kinesis-analytics/${local.naming_prefix}-flink-application"
@@ -221,6 +219,8 @@ resource "aws_kinesisanalyticsv2_application" "flink_iceberg_commit_worker" {
 
     flink_application_configuration {
 
+      # Flink checkpointing configuration
+      # See: https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/datastream/fault-tolerance/checkpointing/
       checkpoint_configuration {
         configuration_type    = "CUSTOM"
         checkpointing_enabled = true
@@ -233,6 +233,8 @@ resource "aws_kinesisanalyticsv2_application" "flink_iceberg_commit_worker" {
         log_level          = "INFO"
       }
 
+      # Flink parallelism configuration
+      # See: https://docs.aws.amazon.com/managed-flink/latest/apiv2/API_ParallelismConfiguration.html
       parallelism_configuration {
         configuration_type   = "CUSTOM"
         parallelism          = var.parallelism
@@ -268,7 +270,7 @@ resource "aws_kinesisanalyticsv2_application" "flink_iceberg_commit_worker" {
           "flink.parallelism"         = tostring(var.parallelism)
           "flink.checkpoint.interval" = tostring(var.checkpoint_interval_ms)
 
-          "newrelic.license.key.secret"   = var.newrelic_license_key_secret
+          "newrelic.license.key"          = data.external.license_key.result.license_key
           "newrelic.metrics.api.endpoint" = var.newrelic_metrics_endpoint
         }
       }
@@ -351,14 +353,12 @@ resource "aws_sqs_queue_policy" "iceberg_file_events_policy" {
         Resource = aws_sqs_queue.iceberg_file_events.arn
         Condition = {
           StringEquals = {
-            # Lock to the account where data_processing is deployed.
-            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+            # Only allow events from the current account and explicitly allowed accounts
+            "aws:SourceAccount" = local.all_allowed_account_ids
           }
           ArnLike = {
-            # Matches every per-setup EventBridge rule that follows the naming
-            # convention — new setups are automatically allowed without updating
-            # this policy.
-            "aws:SourceArn" = local.sqs_eventbridge_source_arn_pattern
+            # Matches every per-setup EventBridge rule that follows the naming convention
+            "aws:SourceArn" = local.sqs_eventbridge_source_arn_patterns
           }
         }
       }
@@ -390,6 +390,7 @@ resource "null_resource" "aws_connection_entity" {
     entity_name       = "${local.naming_prefix}-aws-connection"
     nr_endpoint       = local.nr_graphql_endpoint
     auth_mode         = local.auth_mode
+    sqs_queue_arn     = aws_sqs_queue.iceberg_file_events.arn
   }
 
   provisioner "local-exec" {
@@ -400,6 +401,7 @@ resource "null_resource" "aws_connection_entity" {
       FLEET_ENTITY_GUID = var.fleet_entity_guid
       NR_ENDPOINT       = local.nr_graphql_endpoint
       AUTH_MODE         = local.auth_mode
+      SQS_QUEUE_ARN     = aws_sqs_queue.iceberg_file_events.arn
     }
     command = "python3 ${path.module}/scripts/create_aws_connection.py"
   }

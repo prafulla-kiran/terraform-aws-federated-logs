@@ -2,7 +2,14 @@ data "aws_region" "current" {
   region = var.region
 }
 
-data "aws_caller_identity" "current" {}
+# Fetch SQS queue ARN and role ARN from NGEP AWS Connection Entity
+data "external" "ngep_config" {
+  program = ["python3", "${path.module}/scripts/fetch_ngep_config.py"]
+  query = {
+    fleet_entity_guid = var.fleet_entity_guid
+    nr_endpoint       = local.nr_graphql_endpoint
+  }
+}
 
 resource "aws_s3_bucket" "this" {
   bucket = local.setup_naming_prefix
@@ -57,7 +64,7 @@ resource "aws_cloudwatch_event_rule" "iceberg_file_events" {
 resource "aws_cloudwatch_event_target" "iceberg_file_events_sqs" {
   rule      = aws_cloudwatch_event_rule.iceberg_file_events.name
   target_id = "sqs-target"
-  arn       = var.sqs_queue_arn
+  arn       = data.external.ngep_config.result["sqs_queue_arn"]
 
   input_transformer {
     input_paths = {
@@ -90,7 +97,7 @@ resource "aws_cloudwatch_event_target" "iceberg_file_events_sqs" {
           "bucket": { "name": <bucket> },
           "object": { "key": <key>, "size": <size>, "etag": <etag> },
           "reason": <reason>,
-          "roleArn": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.setup_naming_prefix}-pcg-writer",
+        "roleArn": "${var.flink_assume_role_arn}",
           "setupId": "${var.setup_name}"
         }
       }

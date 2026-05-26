@@ -6,8 +6,7 @@ module "data_processing" {
   fleet_entity_guid           = "YOUR_FLEET_ENTITY_GUID"
 
   # Flink configuration
-  flink_jar_bucket            = "my-flink-jars-bucket"
-  newrelic_license_key_secret = "newrelic/license-key"
+  flink_jar_bucket = "my-flink-jars-bucket"
 
   # Flink parallelism settings (optional - defaults: parallelism=1, parallelism_per_kpu=1, auto_scaling=true)
   # parallelism          = 1

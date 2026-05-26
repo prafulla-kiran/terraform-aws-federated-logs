@@ -1,8 +1,10 @@
 module "setup" {
-  source        = "./modules/federated_logs_setup_resource"
-  setup_name    = var.setup_name
-  sqs_queue_arn = var.sqs_queue_arn
-  region        = var.region
+  source                = "./modules/federated_logs_setup_resource"
+  setup_name            = var.setup_name
+  fleet_entity_guid     = var.fleet_entity_guid
+  newrelic_region       = var.newrelic_region
+  region                = var.region
+  flink_assume_role_arn = var.flink_assume_role_arn
 }
 
 module "role" {

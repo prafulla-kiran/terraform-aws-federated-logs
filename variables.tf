@@ -4,11 +4,6 @@ variable "region" {
   default     = null
 }
 
-variable "sqs_queue_arn" {
-  description = "ARN of the fleet-level SQS queue (from data_processing module) that EventBridge routes .parquet file events into."
-  type        = string
-}
-
 variable "setup_name" {
   description = "A name for this federated logs setup, also used in resource naming."
   type        = string
@@ -105,4 +100,10 @@ variable "partition_tables" {
     }), {})
   }))
   default = {}
+}
+
+variable "flink_assume_role_arn" {
+  description = "IAM role ARN injected into EventBridge SQS message envelope. The Flink commit worker will AssumeRole into this role."
+  type        = string
+  default     = ""
 }

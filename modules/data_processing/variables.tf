@@ -114,12 +114,6 @@ variable "snapshots_enabled" {
   default     = true
 }
 
-variable "newrelic_license_key_secret" {
-  description = "AWS Secrets Manager secret name for the New Relic license key."
-  type        = string
-  sensitive   = true
-}
-
 variable "newrelic_metrics_endpoint" {
   description = "New Relic metrics API endpoint."
   type        = string
@@ -158,6 +152,16 @@ variable "sqs_max_receive_count" {
   description = "Maximum number of receives before a message is moved to the DLQ (CDD recommends 3)."
   type        = number
   default     = 3
+}
+
+# =============================================================================
+# CROSS-ACCOUNT SUPPORT
+# =============================================================================
+
+variable "allowed_source_account_ids" {
+  description = "Additional AWS account IDs allowed to send EventBridge events to the SQS queue. Use this when federated_logs_setup_resource is deployed in different accounts. The current account is always included automatically."
+  type        = list(string)
+  default     = []
 }
 
 # =============================================================================
