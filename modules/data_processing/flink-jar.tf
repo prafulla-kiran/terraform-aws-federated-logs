@@ -12,7 +12,7 @@ locals {
 resource "aws_s3_object_copy" "flink_jar" {
   bucket = var.flink_jar_bucket
   key    = local.flink_jar_dest_key
-  source = "${local.flink_jar_source_bucket}/${local.flink_jar_source_key}"
+  source = "/${local.flink_jar_source_bucket}/${local.flink_jar_source_key}"
 }
 
 output "flink_jar_s3_uri" {
