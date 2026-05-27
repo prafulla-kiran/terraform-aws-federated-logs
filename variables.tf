@@ -24,9 +24,9 @@ variable "newrelic_org_id" {
 }
 
 variable "default_partition_data_retention_days" {
-  description = "Number of days to retain logs in the default partition. Set to 0 (default) to omit data_retention_policy on the default partition."
+  description = "Number of days to retain logs in the default partition. Defaults to 30."
   type        = number
-  default     = 0
+  default     = 30
 }
 
 variable "newrelic_region" {
