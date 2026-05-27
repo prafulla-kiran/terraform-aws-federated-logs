@@ -39,6 +39,6 @@ variable "setup_name" {
 }
 
 variable "newrelic_org_id" {
-  description = "New Relic organization ID (UUID). Used by create_query_aws_connection.py as the scope_id when creating the per-setup query AWS Connection entity (scope_type = ORGANIZATION)."
+  description = "New Relic organization ID."
   type        = string
 }

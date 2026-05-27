@@ -213,16 +213,10 @@ run "test_role_naming_conventions" {
     error_message = "NR reader role trust policy missing ExternalId condition - security risk for cross-account access"
   }
 
-  # Verify base_role_arn_from_ngep is the mocked ARN
+  # NR reader role should trust the NRGlobalIAMRole hub role
   assert {
-    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/.+", output.base_role_arn_from_ngep))
-    error_message = "base_role_arn_from_ngep must be a valid IAM role ARN"
-  }
-
-  # Verify pcg-writer role is tagged with fleet_entity_guid
-  assert {
-    condition     = output.pcg_writer_role_tags["fleet_entity_guid"] == var.fleet_entity_guid
-    error_message = "PCG writer role must be tagged with fleet_entity_guid for ABAC resource tag matching"
+    condition     = can(regex("role/NRGlobalIAMRole", output.nr_reader_trust_policy_json))
+    error_message = "NR reader role trust policy must allow NRGlobalIAMRole to assume it"
   }
 }
 
