@@ -65,3 +65,9 @@ variable "newrelic_region" {
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."
   }
 }
+
+variable "fleet_ingest_connection_description" {
+  description = "Optional description for the fleet-level newrelic_aws_connection wrapping the PCG base role."
+  type        = string
+  default     = null
+}

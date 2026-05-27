@@ -70,10 +70,11 @@ variable "default_table_setting" {
 }
 
 variable "partition_tables" {
-  description = "Map of extra tables using the exact same structure as the default. `routing_expression` is an optional OTTL expression that determines which logs route to this partition; without it, the partition exists but receives no traffic."
+  description = "Map of extra tables using the exact same structure as the default. `routing_expression` is an optional OTTL expression that determines which logs route to this partition; without it, the partition exists but receives no traffic. `description` is an optional free-form description for the NR partition entity."
   type = map(object({
     retention_in_days  = optional(number, 30)
     routing_expression = optional(string)
+    description        = optional(string)
     table_parameters   = optional(map(string), {})
     optimizer_configuration = optional(object({
       orphan_file_deletion = optional(object({

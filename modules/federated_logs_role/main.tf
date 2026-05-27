@@ -253,7 +253,7 @@ resource "aws_iam_role_policy_attachment" "writer_attach" {
 # Per-setup AWS Connection entity wrapping the reader role.
 resource "newrelic_aws_connection" "query" {
   name        = "${local.setup_naming_prefix}-query-aws-connection"
-  description = "Federated logs query connection for setup '${var.setup_name}'."
+  description = var.query_connection_description
   role_arn    = aws_iam_role.reader-role.arn
 
   scope_type = "ORGANIZATION"
@@ -263,7 +263,7 @@ resource "newrelic_aws_connection" "query" {
 # ── Federated Logs Setup (NR provider resource) ──────────────────────────────
 resource "newrelic_federated_logs_setup" "this" {
   name        = var.setup_name
-  description = "Federated logs setup ${var.setup_name}: AWS S3 + Glue catalog as the underlying store, with a default partition created alongside."
+  description = var.setup_description
 
   storage {
     data_location_bucket      = var.s3_bucket_name

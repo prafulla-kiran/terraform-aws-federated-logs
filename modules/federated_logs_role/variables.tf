@@ -48,3 +48,15 @@ variable "default_partition_data_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "setup_description" {
+  description = "Optional description for the newrelic_federated_logs_setup resource."
+  type        = string
+  default     = null
+}
+
+variable "query_connection_description" {
+  description = "Optional description for the per-setup newrelic_aws_connection wrapping the reader role."
+  type        = string
+  default     = null
+}

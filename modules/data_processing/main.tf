@@ -89,7 +89,7 @@ resource "aws_eks_pod_identity_association" "base_role" {
 #      HAS_FED_LOGS_BASE_ROLE relationship.
 resource "newrelic_aws_connection" "fleet_ingest" {
   name        = "${local.naming_prefix}-aws-connection"
-  description = "Fleet ingest connection"
+  description = var.fleet_ingest_connection_description
   role_arn    = aws_iam_role.base_role.arn
 
   scope_type = "ORGANIZATION"

@@ -104,7 +104,7 @@ resource "newrelic_federated_logs_partition" "this" {
 
   setup_id    = var.setup_id
   name        = each.key
-  description = "Federated logs partition '${each.key}' for setup '${var.setup_name}'."
+  description = each.value.description
 
   storage {
     table             = each.key

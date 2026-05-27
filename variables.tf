@@ -29,6 +29,18 @@ variable "default_partition_data_retention_days" {
   default     = 30
 }
 
+variable "setup_description" {
+  description = "Optional description for the newrelic_federated_logs_setup resource."
+  type        = string
+  default     = null
+}
+
+variable "query_connection_description" {
+  description = "Optional description for the per-setup newrelic_aws_connection wrapping the reader role."
+  type        = string
+  default     = null
+}
+
 variable "newrelic_region" {
   description = "New Relic region: 'US', 'EU', or 'STAGING'. Defaults to STAGING because the federatedLogs* wrapper mutations are mocked on prod — staging is the only environment where the new newrelic_federated_logs_setup resource exercises the real path. Override to 'US'/'EU' once the wrapper API is live in prod."
   type        = string
@@ -88,10 +100,11 @@ variable "default_table_setting" {
 }
 
 variable "partition_tables" {
-  description = "Map of additional partition tables. Each entry can override table_parameters, optimizer_configuration, and/or routing_expression — or use {} for all defaults."
+  description = "Map of additional partition tables. Each entry can override table_parameters, optimizer_configuration, routing_expression, and/or description — or use {} for all defaults."
   type = map(object({
     retention_in_days  = optional(number, 30)
     routing_expression = optional(string)
+    description        = optional(string)
     table_parameters   = optional(map(string), {})
     optimizer_configuration = optional(object({
       orphan_file_deletion = optional(object({
