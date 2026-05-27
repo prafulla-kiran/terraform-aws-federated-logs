@@ -80,31 +80,50 @@ resource "aws_eks_pod_identity_association" "base_role" {
   role_arn        = aws_iam_role.base_role.arn
 }
 
-# ── NGEP: AWS Connection Entity + Relationship ────────────────────────────────
-# 1. Creates an AWS Connection Entity storing the base role ARN as credential.
-# 2. Creates a HAS_FED_LOGS_BASE_ROLE relationship from fleet_entity_guid → AWS Connection Entity.
+# ── NGEP: AWS Connection Entity, Tags, and Relationship ──────────────────────
+# 1. newrelic_aws_connection
+# 2. newrelic_entity_tags    — applies `fleet_entity_guid` and `auth_mode`
+#    tags so federated_logs_role's fetch_base_role.py keeps finding the
+#    entity by tag.
+# 3. null_resource           — Python script that only creates the
+#      HAS_FED_LOGS_BASE_ROLE relationship.
+resource "newrelic_aws_connection" "fleet_ingest" {
+  name        = "${local.naming_prefix}-aws-connection"
+  description = "Fleet ingest connection"
+  role_arn    = aws_iam_role.base_role.arn
 
-# TODO we will change this to use new relic providers directly. 
-resource "null_resource" "aws_connection_entity" {
+  scope_type = "ORGANIZATION"
+  scope_id   = var.newrelic_org_id
+}
+
+resource "newrelic_entity_tags" "fleet_ingest_tags" {
+  guid = newrelic_aws_connection.fleet_ingest.id
+
+  tag {
+    key    = "fleet_entity_guid"
+    values = [var.fleet_entity_guid]
+  }
+  tag {
+    key    = "auth_mode"
+    values = [local.auth_mode]
+  }
+}
+
+resource "null_resource" "fleet_relationship" {
   triggers = {
-    role_arn          = aws_iam_role.base_role.arn
-    nr_org_id         = var.newrelic_org_id
     fleet_entity_guid = var.fleet_entity_guid
-    entity_name       = "${local.naming_prefix}-aws-connection"
+    connection_id     = newrelic_aws_connection.fleet_ingest.id
     nr_endpoint       = local.nr_graphql_endpoint
-    auth_mode         = local.auth_mode
   }
 
   provisioner "local-exec" {
     environment = {
-      ROLE_ARN          = aws_iam_role.base_role.arn
-      ENTITY_NAME       = "${local.naming_prefix}-aws-connection"
-      NR_ORG_ID         = var.newrelic_org_id
       FLEET_ENTITY_GUID = var.fleet_entity_guid
+      CONNECTION_ID     = newrelic_aws_connection.fleet_ingest.id
       NR_ENDPOINT       = local.nr_graphql_endpoint
-      AUTH_MODE         = local.auth_mode
     }
-    command = "python3 ${path.module}/scripts/create_aws_connection.py"
+    command = "python3 ${path.module}/scripts/create_relationship.py"
   }
 
+  depends_on = [newrelic_entity_tags.fleet_ingest_tags]
 }
