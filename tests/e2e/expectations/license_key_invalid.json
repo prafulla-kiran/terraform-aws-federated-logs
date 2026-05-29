@@ -16,8 +16,8 @@
       "path": "/v1/logs"
     },
     "httpResponse": {
-      "statusCode": 503,
-      "body": "Service Unavailable"
+      "statusCode": 403,
+      "body": "Forbidden"
     }
   },
   {

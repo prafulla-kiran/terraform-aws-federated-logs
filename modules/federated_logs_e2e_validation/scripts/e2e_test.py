@@ -8,19 +8,19 @@ injected into the payload so we can query for the exact log.
 
 Usage:
     python3 e2e_test.py \
-        --pcg-endpoint "https://pcg.example.com/v1/logs" \
+        --pcg-endpoint "https://pcg.example.com" \
         --license-key "INGEST-KEY-..." \
-        --partition "application_log" \
         --nr-account-id "1234567" \
         --nr-api-key "NRAK-..." \
         --payload '{"message": "test log entry", "level": "info"}'
 
 All arguments can also be set via environment variables:
-    PCG_ENDPOINT, NR_LICENSE_KEY, PARTITION_NAME,
-    NR_ACCOUNT_ID, NR_API_KEY, TEST_PAYLOAD
+    PCG_ENDPOINT, NEWRELIC_LICENSE_KEY,
+    NR_ACCOUNT_ID, NEWRELIC_API_KEY, TEST_PAYLOAD
 """
 
 import argparse
+import datetime
 import json
 import os
 import sys
@@ -90,14 +90,55 @@ def http_post(url, headers, body):
         return 0, str(e.reason)
 
 
-# ── Step 1: Send payload to PCG ───────────────────────────────
-def send_to_pcg(endpoint, license_key, payload):
+# ── Step 1: Check PCG health ──────────────────────────────────
+def check_pcg_health(base_endpoint):
+    url = base_endpoint.rstrip("/") + "/health/status"
     info("")
-    info("Step 1: Sending test payload to PCG endpoint...")
+    info("Step 1: Checking PCG health...")
+    info(f"Health endpoint: {url}")
+
+    req = urllib.request.Request(url, method="GET")
+    try:
+        with urllib.request.urlopen(req) as resp:
+            status = resp.status
+            body = resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        status = e.code
+        body = e.read().decode("utf-8")
+    except urllib.error.URLError as e:
+        fail_msg(f"PCG health check connection error: {e.reason}")
+        return False, {
+            "error": "PCG is not reachable",
+            "description": "Verify the PCG pod is running and the service endpoint is exposed",
+        }
+
+    try:
+        data = json.loads(body)
+        healthy = data.get("healthy") is True
+    except (json.JSONDecodeError, AttributeError):
+        healthy = False
+
+    if not healthy:
+        fail_msg(f"PCG health check failed (HTTP {status}): {body}")
+        return False, {
+            "error": "PCG is not reachable",
+            "description": "Verify the PCG pod is running and the service endpoint is exposed",
+        }
+
+    pass_msg("PCG is healthy")
+    return True, None
+
+
+# ── Step 2: Send payload to PCG ───────────────────────────────
+def send_to_pcg(base_endpoint, license_key, payload):
+    endpoint = base_endpoint.rstrip("/") + "/v1/logs"
+    info("")
+    info("Step 2: Sending test payload to PCG endpoint...")
+    info(f"Logs endpoint: {endpoint}")
 
     headers = {
         "Content-Type": "application/json",
-        "Api-Key": license_key,
+        "X-License-Key": license_key,
     }
     # PCG expects an array of log entries
     body = [payload]
@@ -107,23 +148,33 @@ def send_to_pcg(endpoint, license_key, payload):
 
         if 200 <= status < 300:
             pass_msg(f"Payload sent successfully (HTTP {status})")
-            return True
+            return True, None
 
         warn(f"Attempt {attempt}/{WRITE_MAX_RETRIES}: PCG returned HTTP {status}")
         warn(f"Response: {response_body}")
+
+        if status in (401, 403):
+            fail_msg("License key error")
+            return False, {
+                "error": "License key configured in PCG is either invalid or expired",
+                "description": "Re-check the key configured in the PCG Helm values",
+            }
 
         if attempt < WRITE_MAX_RETRIES:
             info(f"Retrying in {WRITE_RETRY_DELAY}s...")
             time.sleep(WRITE_RETRY_DELAY)
 
     fail_msg(f"Failed to send payload to PCG after {WRITE_MAX_RETRIES} attempts")
-    return False
+    return False, {
+        "error": "Error sending log to PCG",
+        "description": "Please check the logs of PCG pods",
+    }
 
 
-# ── Step 3: Query New Relic ───────────────────────────────────
+# ── Step 4: Query New Relic ───────────────────────────────────
 def query_new_relic(account_id, api_key, partition, test_uuid, graphql_url):
     info("")
-    info(f"Step 3: Querying New Relic for test log (UUID: {test_uuid})...")
+    info(f"Step 4: Querying New Relic for test log (UUID: {test_uuid})...")
     info(f"GraphQL endpoint: {graphql_url}")
 
     nrql = (
@@ -181,9 +232,66 @@ def query_new_relic(account_id, api_key, partition, test_uuid, graphql_url):
         info(f"Attempt {attempt}: found {log_count} matching log(s)")
 
         if log_count >= 1:
-            return True, log_count, last_response
+            return True, log_count, results[0], nrql, None
 
-    return False, log_count, last_response
+    error_obj = {
+        "error": "Unable to query the test log",
+        "description": "Please check troubleshooting docs",
+    }
+    return False, log_count, last_response, nrql, error_obj
+
+
+# ── Step 5: Update federated logs setup status ────────────────
+def update_federated_logs_setup(graphql_url, api_key, setup_id, status, message):
+    now = (
+        datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.")
+        + f"{datetime.datetime.utcnow().microsecond // 1000:03d}Z"
+    )
+
+    mutation = (
+        'mutation {\n'
+        '  federatedLogsUpdateSetup(\n'
+        '    id: "%s"\n'
+        '    setup: {healthCheck: {end2endDataFlow: {status: %s, message: %s, lastUpdatedAt: "%s"}}}\n'
+        '  ) {\n'
+        '    setup {\n'
+        '      id\n'
+        '    }\n'
+        '  }\n'
+        '}'
+    ) % (setup_id, status, json.dumps(message), now)
+
+    headers = {
+        "Content-Type": "application/json",
+        "API-Key": api_key,
+    }
+
+    info("")
+    info("Step 5: Updating federated logs setup status...")
+    info(f"Status: {status}")
+
+    resp_status, response_body = http_post(graphql_url, headers, {"query": mutation})
+
+    if resp_status == 0:
+        warn(f"Connection error when updating setup status: {response_body}")
+        return False
+
+    try:
+        data = json.loads(response_body)
+        gql_errors = data.get("errors", [])
+        if gql_errors:
+            warn(f"GraphQL error updating setup: {gql_errors[0].get('message', 'Unknown')}")
+            return False
+    except json.JSONDecodeError:
+        warn("Invalid JSON response from setup update")
+        return False
+
+    if 200 <= resp_status < 300:
+        pass_msg(f"Setup status updated to {status}")
+        return True
+
+    warn(f"Failed to update setup status (HTTP {resp_status}): {response_body}")
+    return False
 
 
 # ── Main ──────────────────────────────────────────────────────
@@ -200,13 +308,8 @@ def main():
     )
     parser.add_argument(
         "--license-key",
-        default=os.environ.get("NR_LICENSE_KEY", ""),
+        default=os.environ.get("NEWRELIC_LICENSE_KEY", ""),
         help="New Relic license/ingest key",
-    )
-    parser.add_argument(
-        "--partition",
-        default=os.environ.get("PARTITION_NAME", ""),
-        help="Target partition (table) name for NRQL query",
     )
     parser.add_argument(
         "--nr-account-id",
@@ -215,7 +318,7 @@ def main():
     )
     parser.add_argument(
         "--nr-api-key",
-        default=os.environ.get("NR_API_KEY", ""),
+        default=os.environ.get("NEWRELIC_API_KEY", ""),
         help="New Relic User API key for GraphQL queries",
     )
     parser.add_argument(
@@ -240,16 +343,20 @@ def main():
         default=os.environ.get("NR_GRAPHQL_URL", ""),
         help="Override the GraphQL endpoint URL (ignores --region and --staging)",
     )
+    parser.add_argument(
+        "--setup-id",
+        default=os.environ.get("NR_FEDERATEDLOGS_SETUP_ID", ""),
+        help="Federated logs setup entity GUID for reporting health status",
+    )
 
     args = parser.parse_args()
 
     # Validate required inputs
     required = {
         "PCG_ENDPOINT / --pcg-endpoint": bool(args.pcg_endpoint),
-        "NR_LICENSE_KEY / --license-key": bool(args.license_key),
-        "PARTITION_NAME / --partition": bool(args.partition),
+        "NEWRELIC_LICENSE_KEY / --license-key": bool(args.license_key),
         "NR_ACCOUNT_ID / --nr-account-id": bool(args.nr_account_id),
-        "NR_API_KEY / --nr-api-key": bool(args.nr_api_key),
+        "NEWRELIC_API_KEY / --nr-api-key": bool(args.nr_api_key),
     }
     missing = [name for name, present in required.items() if not present]
     if missing:
@@ -279,26 +386,52 @@ def main():
     info("Federated Logs E2E Test")
     info("──────────────────────────────────────────────────")
     info(f"PCG Endpoint:  {args.pcg_endpoint}")
-    info(f"Partition:     {args.partition}")
+    info(f"Partition:     Log_Federated")
     info(f"Test UUID:     {test_uuid}")
     info(f"NR Account:    {args.nr_account_id}")
     info(f"NR Region:     {args.region}{'  (staging)' if args.staging else ''}")
     info(f"GraphQL URL:   {graphql_url}")
     info(f"Payload:       {json.dumps(payload)}")
+    if args.setup_id:
+        info(f"Setup ID:      {args.setup_id}")
     info("──────────────────────────────────────────────────")
 
-    # Step 1: Send to PCG
-    if not send_to_pcg(args.pcg_endpoint, args.license_key, payload):
+    # Step 1: Check PCG health
+    health_ok, health_error = check_pcg_health(args.pcg_endpoint)
+    if not health_ok:
+        info("")
+        info("──────────────────────────────────────────────────")
+        fail_msg("E2E test FAILED")
+        info("──────────────────────────────────────────────────")
+        if args.setup_id:
+            update_federated_logs_setup(
+                graphql_url, args.nr_api_key, args.setup_id,
+                "UNHEALTHY", json.dumps(health_error),
+            )
         sys.exit(1)
 
-    # Step 2: Wait for ingestion
+    # Step 2: Send to PCG
+    send_ok, send_error = send_to_pcg(args.pcg_endpoint, args.license_key, payload)
+    if not send_ok:
+        info("")
+        info("──────────────────────────────────────────────────")
+        fail_msg("E2E test FAILED")
+        info("──────────────────────────────────────────────────")
+        if args.setup_id:
+            update_federated_logs_setup(
+                graphql_url, args.nr_api_key, args.setup_id,
+                "UNHEALTHY", json.dumps(send_error),
+            )
+        sys.exit(1)
+
+    # Step 3: Wait for ingestion
     info("")
-    info(f"Step 2: Waiting {INITIAL_READ_WAIT}s for log ingestion...")
+    info(f"Step 3: Waiting {INITIAL_READ_WAIT}s for log ingestion...")
     time.sleep(INITIAL_READ_WAIT)
 
-    # Step 3: Query New Relic
-    success, count, last_response = query_new_relic(
-        args.nr_account_id, args.nr_api_key, args.partition, test_uuid, graphql_url
+    # Step 4: Query New Relic
+    success, count, last_response, nrql, read_error = query_new_relic(
+        args.nr_account_id, args.nr_api_key, "Log_Federated", test_uuid, graphql_url
     )
 
     # Results
@@ -308,6 +441,12 @@ def main():
         pass_msg("E2E test PASSED")
         pass_msg(f"Test log with UUID {test_uuid} found in New Relic (count: {count})")
         info("──────────────────────────────────────────────────")
+        if args.setup_id:
+            success_message = json.dumps({"nrql": nrql, "response": last_response})
+            update_federated_logs_setup(
+                graphql_url, args.nr_api_key, args.setup_id,
+                "HEALTHY", success_message,
+            )
         sys.exit(0)
     else:
         fail_msg("E2E test FAILED")
@@ -316,6 +455,11 @@ def main():
         )
         info(f"Last API response: {last_response}")
         info("──────────────────────────────────────────────────")
+        if args.setup_id:
+            update_federated_logs_setup(
+                graphql_url, args.nr_api_key, args.setup_id,
+                "UNHEALTHY", json.dumps(read_error),
+            )
         sys.exit(1)
 
 

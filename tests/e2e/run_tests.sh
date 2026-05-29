@@ -49,12 +49,12 @@ run_test() {
 
     set +e
     python3 "$E2E_SCRIPT" \
-        --pcg-endpoint "$MOCK_URL/v1/logs" \
+        --pcg-endpoint "$MOCK_URL" \
         --graphql-url "$MOCK_URL/graphql" \
         --license-key "mock-license-key" \
-        --partition "application_log" \
         --nr-account-id "12345" \
-        --nr-api-key "mock-api-key" 2>&1
+        --nr-api-key "mock-api-key" \
+        --setup-id "mock-setup-id" 2>&1
     actual_exit=$?
     set -e
 
@@ -86,6 +86,8 @@ run_test "Write retry then success"      "write_retry.json"             0
 run_test "NR read retry then success"    "read_retry.json"              0
 run_test "Write permanent failure"       "write_permanent_failure.json"  1
 run_test "NR read permanent empty"       "read_permanent_empty.json"    1
+run_test "PCG health check failure"      "health_check_failure.json"    1
+run_test "License key invalid (403)"     "license_key_invalid.json"     1
 
 # ── Results ───────────────────────────────────────────────────
 echo ""
