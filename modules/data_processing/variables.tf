@@ -69,6 +69,13 @@ variable "fleet_ingest_connection_description" {
   default     = null
 }
 
+variable "newrelic_license_key" {
+  description = "New Relic license key, used by the Flink commit worker to send metrics. Pass via the TF_VAR_newrelic_license_key env var so the value is never written to a tfvars file. Customers who already export NEW_RELIC_LICENSE_KEY can alias it: `export TF_VAR_newrelic_license_key=\"$NEW_RELIC_LICENSE_KEY\"`."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
 # =============================================================================
 # FLINK VARIABLES
 # =============================================================================
