@@ -103,7 +103,7 @@ resource "newrelic_federated_logs_partition" "this" {
   for_each = local.sanitized_partition_tables
 
   setup_id    = var.setup_id
-  name        = each.key
+  name        = local.nr_partition_names[each.key]
   description = each.value.description
 
   storage {
