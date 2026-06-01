@@ -9,7 +9,8 @@ module "role" {
   setup_name           = module.setup.setup_name
   s3_bucket_name       = module.setup.s3_bucket_name
   glue_catalog_db_name = module.setup.glue_catalog_db_name
-  clusters             = var.clusters
+  fleet_entity_guid    = var.fleet_entity_guid
+  newrelic_region      = var.newrelic_region
   region               = var.region
 }
 

@@ -67,6 +67,16 @@ module "federated_logs" {
 }
 ```
 
+## Prerequisites
+
+Export your New Relic API key as an environment variable before running Terraform:
+
+```sh
+export NEWRELIC_API_KEY="your-new-relic-api-key"
+```
+
+This is used to make New Relic API calls (fetching the base role ARN). It is read directly from the environment and is never stored in Terraform state.
+
 ## Requirements
 
 | Name | Version |
