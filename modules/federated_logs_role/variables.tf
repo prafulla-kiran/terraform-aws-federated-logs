@@ -65,3 +65,10 @@ variable "query_connection_description" {
   type        = string
   default     = null
 }
+
+variable "writer_connection_description" {
+  description = "Optional description for the per-setup newrelic_aws_connection wrapping the writer role."
+  type        = string
+  default     = null
+
+}

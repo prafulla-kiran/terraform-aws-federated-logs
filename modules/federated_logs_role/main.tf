@@ -260,6 +260,24 @@ resource "newrelic_aws_connection" "query" {
   }
 }
 
+
+resource "newrelic_aws_connection" "writer_role" {
+  account_id  = var.newrelic_account_id
+  name        = "${local.setup_naming_prefix}-writer-aws-connection"
+  description = var.writer_connection_description
+
+  scope_type = "ORGANIZATION"
+  scope_id   = var.newrelic_org_id
+
+  credential {
+    assume_role {
+      role_arn    = aws_iam_role.pcg-writer-role.arn
+      external_id = local.nr_assume_role_external_id
+    }
+  }
+}
+
+
 # ── Federated Logs Setup (NR provider resource) ──────────────────────────────
 resource "newrelic_federated_logs_setup" "this" {
   account_id  = var.newrelic_account_id
@@ -269,7 +287,7 @@ resource "newrelic_federated_logs_setup" "this" {
   storage {
     data_location_bucket      = var.s3_bucket_name
     database                  = var.glue_catalog_db_name
-    data_ingest_connection_id = data.external.base_role.result["connection_id"]
+    data_ingest_connection_id = newrelic_aws_connection.writer_role.id
     query_connection_id       = newrelic_aws_connection.query.id
 
     cloud_provider_configuration {
