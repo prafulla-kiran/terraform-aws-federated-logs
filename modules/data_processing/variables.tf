@@ -53,6 +53,11 @@ variable "newrelic_org_id" {
   type        = string
 }
 
+variable "newrelic_account_id" {
+  description = "New Relic account ID."
+  type        = number
+}
+
 variable "newrelic_region" {
   description = "New Relic region"
   type        = string

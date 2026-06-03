@@ -115,3 +115,8 @@ variable "setup_id" {
   description = "Entity GUID of the parent newrelic_federated_logs_setup."
   type        = string
 }
+
+variable "newrelic_account_id" {
+  description = "New Relic account ID."
+  type        = number
+}

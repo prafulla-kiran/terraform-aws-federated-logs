@@ -382,6 +382,7 @@ resource "aws_sqs_queue_redrive_allow_policy" "iceberg_dlq_allow" {
 # 2. null_resource            — Python script that only creates the
 #    HAS_FED_LOGS_BASE_ROLE relationship.
 resource "newrelic_aws_connection" "fleet_ingest" {
+  account_id  = var.newrelic_account_id
   name        = "${local.naming_prefix}-aws-connection"
   description = var.fleet_ingest_connection_description
 

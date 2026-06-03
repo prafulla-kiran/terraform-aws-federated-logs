@@ -102,6 +102,7 @@ EOF
 resource "newrelic_federated_logs_partition" "this" {
   for_each = local.sanitized_partition_tables
 
+  account_id  = var.newrelic_account_id
   setup_id    = var.setup_id
   name        = local.nr_partition_names[each.key]
   description = each.value.description

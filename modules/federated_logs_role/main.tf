@@ -245,6 +245,7 @@ resource "aws_iam_role_policy_attachment" "writer_attach" {
 
 # Per-setup AWS Connection entity wrapping the reader role.
 resource "newrelic_aws_connection" "query" {
+  account_id  = var.newrelic_account_id
   name        = "${local.setup_naming_prefix}-query-aws-connection"
   description = var.query_connection_description
 
@@ -261,6 +262,7 @@ resource "newrelic_aws_connection" "query" {
 
 # ── Federated Logs Setup (NR provider resource) ──────────────────────────────
 resource "newrelic_federated_logs_setup" "this" {
+  account_id  = var.newrelic_account_id
   name        = var.setup_name
   description = var.setup_description
 

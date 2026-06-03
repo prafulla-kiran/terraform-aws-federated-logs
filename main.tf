@@ -12,6 +12,7 @@ module "role" {
   fleet_entity_guid                     = var.fleet_entity_guid
   newrelic_region                       = var.newrelic_region
   newrelic_org_id                       = var.newrelic_org_id
+  newrelic_account_id                   = var.newrelic_account_id
   region                                = var.region
   default_partition_data_retention_days = var.default_partition_data_retention_days
   setup_description                     = var.setup_description
@@ -37,4 +38,5 @@ module "partition" {
   partition_tables       = var.partition_tables
   region                 = var.region
   data_retention_enabled = var.data_retention_enabled
+  newrelic_account_id    = var.newrelic_account_id
 }
