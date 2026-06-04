@@ -390,7 +390,7 @@ resource "newrelic_aws_connection" "fleet_ingest" {
 
   credential {
     assume_role {
-      role_arn    = aws_iam_role.base_role.arn
+      role_arn = aws_iam_role.base_role.arn
     }
   }
 
