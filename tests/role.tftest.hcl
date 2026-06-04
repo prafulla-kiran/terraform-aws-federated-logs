@@ -38,9 +38,10 @@ provider "aws" {
 
 # Shared test variables
 variables {
-  fleet_entity_guid  = "test-fleet-entity-guid"
+  fleet_entity_guid   = "test-fleet-entity-guid"
   newrelic_account_id = 12345678
-  newrelic_region    = "US"
+  newrelic_org_id     = "test-nr-org-id"
+  newrelic_region     = "US"
 }
 
 # =============================================================================
@@ -81,6 +82,7 @@ run "test_role_naming_conventions" {
     glue_catalog_db_name = run.setup_for_naming_test.glue_catalog_db_name
     fleet_entity_guid    = var.fleet_entity_guid
     newrelic_account_id  = var.newrelic_account_id
+    newrelic_org_id      = var.newrelic_org_id
     newrelic_region      = var.newrelic_region
   }
 
@@ -264,6 +266,7 @@ run "test_module_wiring" {
     glue_catalog_db_name = run.setup_for_wiring_test.glue_catalog_db_name
     fleet_entity_guid    = var.fleet_entity_guid
     newrelic_account_id  = var.newrelic_account_id
+    newrelic_org_id      = var.newrelic_org_id
     newrelic_region      = var.newrelic_region
   }
 

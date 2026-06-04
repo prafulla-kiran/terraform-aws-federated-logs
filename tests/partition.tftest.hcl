@@ -102,6 +102,7 @@ run "roles" {
     glue_catalog_db_name = run.setup.glue_catalog_db_name
     fleet_entity_guid    = "test-fleet-entity-guid"
     newrelic_account_id  = 12345678
+    newrelic_org_id      = "test-nr-org-id"
     newrelic_region      = "US"
   }
 
@@ -110,8 +111,9 @@ run "roles" {
     target = data.external.base_role
     values = {
       result = {
-        role_arn      = "arn:aws:iam::123456789012:role/mock-base-role"
-        sqs_queue_arn = "arn:aws:sqs:us-east-1:123456789012:mock-queue"
+        role_arn                = "arn:aws:iam::123456789012:role/mock-base-role"
+        base_role_connection_id = "mock-connection-guid"
+        sqs_queue_arn           = "arn:aws:sqs:us-east-1:123456789012:mock-queue"
       }
     }
   }
