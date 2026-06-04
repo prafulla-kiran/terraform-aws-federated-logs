@@ -302,7 +302,7 @@ resource "newrelic_federated_logs_setup" "this" {
     dynamic "data_retention_policy" {
       for_each = [1]
       content {
-        duration = 30
+        duration = var.default_table_setting.retention_in_days
         unit     = "DAYS"
       }
     }

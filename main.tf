@@ -16,6 +16,7 @@ module "role" {
   region                       = var.region
   setup_description            = var.setup_description
   query_connection_description = var.query_connection_description
+  default_table_setting        = var.default_table_setting
 }
 
 module "notifications" {
