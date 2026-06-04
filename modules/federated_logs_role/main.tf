@@ -43,6 +43,10 @@ resource "aws_iam_policy" "glue_service_policy" {
         Action = [
           "glue:GetDatabase",
           "glue:GetDatabases",
+          "glue:GetTableOptimizer",
+          "glue:CreateTableOptimizer",
+          "glue:UpdateTableOptimizer",
+          "glue:DeleteTableOptimizer",
           "glue:CreateTable",
           "glue:UpdateTable",
           "glue:DeleteTable",
