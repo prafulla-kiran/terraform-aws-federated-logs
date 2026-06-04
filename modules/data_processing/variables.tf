@@ -44,23 +44,30 @@ variable "clusters" {
 }
 
 variable "fleet_entity_guid" {
-  description = "NGEP entity GUID of the fleet (e.g. FederatedLogsDataProcessingEntity). A relationship of type HAS_FED_LOGS_BASE_ROLE will be created from this entity to the AWS Connection Entity."
+  description = "NGEP entity GUID of the fleet."
   type        = string
 }
 
 variable "newrelic_org_id" {
-  description = "New Relic organization ID (GUID) used to scope NGEP entities at the ORGANIZATION level."
+  description = "New Relic organization ID"
   type        = string
 }
 
+
 variable "newrelic_region" {
-  description = "New Relic region: 'US', 'EU', or 'STAGING'."
+  description = "New Relic region"
   type        = string
   default     = "US"
   validation {
     condition     = contains(["US", "EU", "STAGING"], var.newrelic_region)
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."
   }
+}
+
+variable "fleet_ingest_connection_description" {
+  description = "Optional description for the fleet-level newrelic_aws_connection wrapping the PCG base role."
+  type        = string
+  default     = null
 }
 
 # =============================================================================

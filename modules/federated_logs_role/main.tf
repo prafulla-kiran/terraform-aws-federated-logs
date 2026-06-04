@@ -13,13 +13,6 @@ data "external" "base_role" {
   }
 }
 
-resource "random_uuid" "external_id" {
-  keepers = {
-    # If this value changes, a new UUID will be generated
-    setup_name = var.setup_name
-  }
-}
-
 resource "aws_iam_role" "glue_service_role" {
   name        = "${local.setup_naming_prefix}-glue-service"
   description = "Role for Glue Service to access S3 and manage its own resources"
@@ -119,7 +112,7 @@ resource "aws_iam_role" "reader-role" {
       Action = "sts:AssumeRole"
       Condition = {
         StringEquals = {
-          "sts:ExternalId" = random_uuid.external_id.result
+          "sts:ExternalId" = local.nr_assume_role_external_id
         }
       }
     }]
@@ -248,4 +241,77 @@ resource "aws_iam_role_policy_attachment" "reader_attach" {
 resource "aws_iam_role_policy_attachment" "writer_attach" {
   role       = aws_iam_role.pcg-writer-role.name
   policy_arn = aws_iam_policy.writer_policy.arn
+}
+
+# Per-setup AWS Connection entity wrapping the reader role.
+resource "newrelic_aws_connection" "query_connection" {
+  name        = "${local.setup_naming_prefix}-query-aws-connection"
+  description = var.query_connection_description
+
+  scope_type = "ORGANIZATION"
+  scope_id   = var.newrelic_org_id
+
+  credential {
+    assume_role {
+      role_arn    = aws_iam_role.reader-role.arn
+      external_id = local.nr_assume_role_external_id
+    }
+  }
+}
+
+
+resource "newrelic_aws_connection" "writer_connection" {
+  name        = "${local.setup_naming_prefix}-writer-aws-connection"
+  description = var.writer_connection_description
+
+  scope_type = "ORGANIZATION"
+  scope_id   = var.newrelic_org_id
+
+  credential {
+    assume_role {
+      role_arn = aws_iam_role.pcg-writer-role.arn
+    }
+  }
+}
+
+
+# ── Federated Logs Setup (NR provider resource) ──────────────────────────────
+resource "newrelic_federated_logs_setup" "this" {
+  account_id  = var.newrelic_account_id
+  name        = var.setup_name
+  description = var.setup_description
+
+  storage {
+    data_location_bucket      = var.s3_bucket_name
+    database                  = var.glue_catalog_db_name
+    data_ingest_connection_id = newrelic_aws_connection.writer_connection.id
+    query_connection_id       = newrelic_aws_connection.query_connection.id
+
+    cloud_provider_configuration {
+      provider = "AWS"
+      region   = data.aws_region.current.id
+    }
+  }
+
+  default_partition {
+    storage {
+      table             = local.default_partition_table
+      data_location_uri = "s3://${var.s3_bucket_name}/${var.glue_catalog_db_name}/${local.default_partition_table}"
+    }
+
+    dynamic "data_retention_policy" {
+      for_each = [1]
+      content {
+        duration = var.default_table_setting.retention_in_days
+        unit     = "DAYS"
+      }
+    }
+  }
+
+  forwarder {
+    type = "PIPELINE_CONTROL"
+    pipeline_control {
+      fleet_id = var.fleet_entity_guid
+    }
+  }
 }
