@@ -9,16 +9,24 @@
 #
 # =============================================================================
 
-# Mock the external provider to avoid requiring NEWRELIC_API_KEY in CI
+# Mock the external provider to avoid requiring NEW_RELIC_API_KEY in CI
 mock_provider "external" {
   mock_data "external" {
     defaults = {
       result = {
-        role_arn      = "arn:aws:iam::123456789012:role/mock-role"
-        sqs_queue_arn = "arn:aws:sqs:us-east-1:123456789012:mock-queue"
+        role_arn                = "arn:aws:iam::123456789012:role/mock-role"
+        base_role_connection_id = "mock-connection-guid"
+        sqs_queue_arn           = "arn:aws:sqs:us-east-1:123456789012:mock-queue"
       }
     }
   }
+}
+
+# Mock New Relic provider (account_id is required)
+mock_provider "newrelic" {}
+
+provider "aws" {
+  region = "us-east-1"
 }
 
 # =============================================================================
@@ -33,6 +41,8 @@ run "test_validation_rejects_reserved_name_lowercase" {
     s3_bucket_name        = "test-bucket"
     glue_catalog_db_name  = "test_db"
     glue_service_role_arn = "arn:aws:iam::123456789012:role/test-role"
+    setup_id              = "mock-setup-id"
+    newrelic_account_id   = 12345678
     partition_tables = {
       "log_federated" = {} # Reserved name - should fail
     }
@@ -53,6 +63,8 @@ run "test_validation_rejects_reserved_name_mixed_case" {
     s3_bucket_name        = "test-bucket"
     glue_catalog_db_name  = "test_db"
     glue_service_role_arn = "arn:aws:iam::123456789012:role/test-role"
+    setup_id              = "mock-setup-id"
+    newrelic_account_id   = 12345678
     partition_tables = {
       "Log_Federated" = {} # Reserved name (mixed case) - should fail
     }
@@ -89,6 +101,7 @@ run "roles" {
     s3_bucket_name       = run.setup.s3_bucket_name
     glue_catalog_db_name = run.setup.glue_catalog_db_name
     fleet_entity_guid    = "test-fleet-entity-guid"
+    newrelic_account_id  = 12345678
     newrelic_region      = "US"
   }
 
@@ -141,6 +154,8 @@ run "test_default_table_only" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     # No partition_tables - should still create default table
   }
 
@@ -165,6 +180,8 @@ run "test_add_custom_tables" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     partition_tables = {
       "app_logs"      = {}
       "security_logs" = {}
@@ -192,6 +209,8 @@ run "test_table_name_sanitization" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     partition_tables = {
       "app_logs"       = {}
       "security_logs"  = {}
@@ -239,6 +258,8 @@ run "test_custom_optimizer_config" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     partition_tables = {
       "app_logs"       = {}
       "security_logs"  = {}
@@ -285,6 +306,8 @@ run "test_remove_some_tables" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     partition_tables = {
       "app_logs"      = {}
       "security_logs" = {}
@@ -312,6 +335,8 @@ run "test_remove_all_custom" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     # No partition_tables - back to default only
   }
 
@@ -336,6 +361,8 @@ run "test_custom_default_table_setting" {
     s3_bucket_name        = run.setup.s3_bucket_name
     glue_catalog_db_name  = run.setup.glue_catalog_db_name
     glue_service_role_arn = run.roles.glue_service_role_arn
+    setup_id              = run.roles.setup_id
+    newrelic_account_id   = 12345678
     default_table_setting = {
       table_parameters = {
         "default_custom_param" = "default_custom_value"

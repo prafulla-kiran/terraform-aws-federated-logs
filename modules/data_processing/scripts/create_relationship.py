@@ -4,9 +4,9 @@ import json, os, urllib.request, sys
 # AWS Connection entity that wraps the PCG base role.
 
 endpoint          = os.environ['NR_ENDPOINT']
-nr_api_key        = os.environ['NEWRELIC_API_KEY']
+nr_api_key        = os.environ['NEW_RELIC_API_KEY']
 if not nr_api_key:
-    print("Error: NEWRELIC_API_KEY environment variable is not set", file=sys.stderr)
+    print("Error: NEW_RELIC_API_KEY environment variable is not set", file=sys.stderr)
     sys.exit(1)
 fleet_entity_guid = os.environ['FLEET_ENTITY_GUID']
 connection_id     = os.environ['CONNECTION_ID']
@@ -14,11 +14,12 @@ connection_id     = os.environ['CONNECTION_ID']
 
 def call_graphql(query, variables=None):
     payload = json.dumps({"query": query, "variables": variables or {}}).encode()
-    req = urllib.request.Request(endpoint, data=payload, headers={
+    headers = {
         "Content-Type": "application/json",
         "API-Key": nr_api_key,
         "X-Query-Source-Capability-Id": "ADD_DATA",
-    })
+    }
+    req = urllib.request.Request(endpoint, data=payload, headers=headers)
     try:
         return json.loads(urllib.request.urlopen(req).read())
     except urllib.error.HTTPError as e:

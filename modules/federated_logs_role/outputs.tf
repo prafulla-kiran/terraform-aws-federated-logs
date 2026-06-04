@@ -51,7 +51,7 @@ output "base_role_arn_from_ngep" {
 
 output "fleet_ingest_connection_id" {
   description = "NGEP guid of the fleet-level AWS Connection entity."
-  value       = data.external.base_role.result["connection_id"]
+  value       = data.external.base_role.result["base_role_connection_id"]
 }
 
 output "sqs_queue_arn_from_ngep" {
@@ -66,7 +66,7 @@ output "pcg_writer_role_tags" {
 
 output "query_connection_id" {
   description = "Entity GUID of the per-setup AWS Connection wrapping the reader role."
-  value       = newrelic_aws_connection.query.id
+  value       = newrelic_aws_connection.query_connection.id
 }
 
 output "setup_id" {

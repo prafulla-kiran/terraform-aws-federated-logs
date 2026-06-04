@@ -244,8 +244,7 @@ resource "aws_iam_role_policy_attachment" "writer_attach" {
 }
 
 # Per-setup AWS Connection entity wrapping the reader role.
-resource "newrelic_aws_connection" "query" {
-  account_id  = var.newrelic_account_id
+resource "newrelic_aws_connection" "query_connection" {
   name        = "${local.setup_naming_prefix}-query-aws-connection"
   description = var.query_connection_description
 
@@ -261,8 +260,7 @@ resource "newrelic_aws_connection" "query" {
 }
 
 
-resource "newrelic_aws_connection" "writer_role" {
-  account_id  = var.newrelic_account_id
+resource "newrelic_aws_connection" "writer_connection" {
   name        = "${local.setup_naming_prefix}-writer-aws-connection"
   description = var.writer_connection_description
 
@@ -272,7 +270,6 @@ resource "newrelic_aws_connection" "writer_role" {
   credential {
     assume_role {
       role_arn    = aws_iam_role.pcg-writer-role.arn
-      external_id = local.nr_assume_role_external_id
     }
   }
 }
@@ -287,8 +284,8 @@ resource "newrelic_federated_logs_setup" "this" {
   storage {
     data_location_bucket      = var.s3_bucket_name
     database                  = var.glue_catalog_db_name
-    data_ingest_connection_id = newrelic_aws_connection.writer_role.id
-    query_connection_id       = newrelic_aws_connection.query.id
+    data_ingest_connection_id = newrelic_aws_connection.writer_connection.id
+    query_connection_id       = newrelic_aws_connection.query_connection.id
 
     cloud_provider_configuration {
       provider = "AWS"
@@ -303,9 +300,9 @@ resource "newrelic_federated_logs_setup" "this" {
     }
 
     dynamic "data_retention_policy" {
-      for_each = var.default_partition_data_retention_days > 0 ? [1] : []
+      for_each = [1]
       content {
-        duration = var.default_partition_data_retention_days
+        duration = 30
         unit     = "DAYS"
       }
     }

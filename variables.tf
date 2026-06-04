@@ -28,12 +28,6 @@ variable "newrelic_account_id" {
   type        = number
 }
 
-variable "default_partition_data_retention_days" {
-  description = "Number of days to retain logs in the default partition. Defaults to 30."
-  type        = number
-  default     = 30
-}
-
 variable "setup_description" {
   description = "Optional description for the newrelic_federated_logs_setup resource."
   type        = string
@@ -49,7 +43,7 @@ variable "query_connection_description" {
 variable "newrelic_region" {
   description = "New Relic region: 'US', 'EU', or 'STAGING'."
   type        = string
-  default     = "STAGING"
+  default     = "US"
   validation {
     condition     = contains(["US", "EU", "STAGING"], var.newrelic_region)
     error_message = "newrelic_region must be 'US', 'EU', or 'STAGING'."

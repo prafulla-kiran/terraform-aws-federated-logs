@@ -48,12 +48,6 @@ variable "newrelic_account_id" {
   type        = number
 }
 
-variable "default_partition_data_retention_days" {
-  description = "Number of days to retain logs in the default partition."
-  type        = number
-  default     = 30
-}
-
 variable "setup_description" {
   description = "Optional description for the newrelic_federated_logs_setup resource."
   type        = string

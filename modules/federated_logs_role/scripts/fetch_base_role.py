@@ -16,9 +16,9 @@ def call_graphql(endpoint, nr_api_key, query):
         sys.exit(1)
 
 
-nr_api_key = os.environ['NEWRELIC_API_KEY']
+nr_api_key = os.environ['NEW_RELIC_API_KEY']
 if not nr_api_key:
-    print("Error: NEWRELIC_API_KEY environment variable is not set", file=sys.stderr)
+    print("Error: NEW_RELIC_API_KEY environment variable is not set", file=sys.stderr)
     sys.exit(1)
     
 query = json.load(sys.stdin)
@@ -65,4 +65,4 @@ if not role_arn:
 
 sqs_queue_arn = tags.get("sqs_queue_arn", "")
 
-print(json.dumps({"role_arn": role_arn, "connection_id": entity["guid"], "sqs_queue_arn": sqs_queue_arn}))
+print(json.dumps({"role_arn": role_arn, "base_role_connection_id": entity["guid"], "sqs_queue_arn": sqs_queue_arn}))

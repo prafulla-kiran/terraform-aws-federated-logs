@@ -14,7 +14,6 @@ module "role" {
   newrelic_org_id                       = var.newrelic_org_id
   newrelic_account_id                   = var.newrelic_account_id
   region                                = var.region
-  default_partition_data_retention_days = var.default_partition_data_retention_days
   setup_description                     = var.setup_description
   query_connection_description          = var.query_connection_description
 }
