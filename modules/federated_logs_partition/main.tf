@@ -1,6 +1,3 @@
-data "aws_region" "current" {
-  region = var.region
-}
 
 resource "aws_s3_object" "folder" {
   for_each = local.all_tables
